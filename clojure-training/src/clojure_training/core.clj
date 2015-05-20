@@ -60,10 +60,16 @@
   (def numPossMag (+ (rand-int 20)   
                      (quot (* (count nodeMaps) maxDemand) storeCapacity))) 
   
-  ;;assegno al primo nodo capacità Q= storeCapacity
+  ;;select numPossMag randomly and assign them the storeCapacity
   (loop [iter 0]
-    (let [n 0]
+    ;;rand-int return a number between 0 and numPossMag
+    ;;in the loop rand-int return the same number more than 1 time
+    ;;to-fix we have to consider the n already selected in the
+    ;;previous loop iteration
+    (let [n (rand-int numPossMag)]
       (def nodeMaps (update-in nodeMaps [n :capacity] + storeCapacity))
+      ;;printing map just modified
+      (println (get nodeMaps n))
       )
       (if (< iter numPossMag)
         (recur (inc iter))
@@ -97,7 +103,7 @@
   (println "Massima capacità: " storeCapacity "\nMassima domanda: "maxDemand)
 
   (println "Numero magazzini tot:" numPossMag)
-  (println (first nodeMaps))
+ ;; (println (first nodeMaps))
 )
 
 

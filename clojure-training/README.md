@@ -8,7 +8,7 @@ The supply cost is computed for every storehouse as the cost of the minimum hami
 
 ## Installation
 
-Download from http://example.com/FIXME.
+Download from https://github.com/sara925/LocationRouting-Clojure.
 
 ## Usage
 
@@ -34,7 +34,7 @@ FIXME: listing of options this app accepts.
 
 ## License
 
-Copyright © 2015 FIXME
+Copyright © 2015 Sara Schiesaro Filippo Poltronieri
 
 Distributed under the Eclipse Public License either version 1.0 or (at
 your option) any later version.
