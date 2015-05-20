@@ -6,7 +6,7 @@
   "I don't do a whole lot ... yet."
   [& args]
   (with-open [rdr (io/reader "/home/utente/lu980.txt")]
-    (printf "%s\n" (clojure.string/join "\n-" (line-seq rdr))))
+    (printf "%s\n" (clojure.string/join "n-" (line-seq rdr))))
 )
 
 
