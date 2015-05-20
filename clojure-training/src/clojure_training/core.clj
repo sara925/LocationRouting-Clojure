@@ -62,11 +62,12 @@
   
   ;;select numPossMag randomly and assign them the storeCapacity
   (loop [iter 0]
-    ;;rand-int return a number between 0 and numPossMag
+    ;;rand-int return a number between 0 and nodeMaps
     ;;in the loop rand-int return the same number more than 1 time
+    ;;the execution let see store with capacity > 600
     ;;to-fix we have to consider the n already selected in the
     ;;previous loop iteration
-    (let [n (rand-int numPossMag)]
+    (let [n (int (rand (count nodeMaps)))]
       (def nodeMaps (update-in nodeMaps [n :capacity] + storeCapacity))
       ;;printing map just modified
       (println (get nodeMaps n))
