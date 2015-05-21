@@ -1,6 +1,7 @@
 (ns clojure-training.core
   (:require [clojure.java.io :as io])
   (:require [clojure.string :as str])
+  (:require [clojure.set :as set])
   (:gen-class))
 
 
@@ -9,6 +10,8 @@
 (def numPossMag)
 (def storeCapacity)
 (def maxDemand)
+(def stores []) ;;array of Storehouse from the nodeMaps list
+(def clients []) ;;array of Clients from the nodeMaps list
 
 
 
@@ -60,24 +63,37 @@
   (def numPossMag (+ (rand-int 20)   
                      (quot (* (count nodeMaps) maxDemand) storeCapacity))) 
   
-  ;;select numPossMag randomly and assign them the storeCapacity
+  ;;select numPossMag randomly and assign them to storeCapacity
+  (def randIdx (unique-rand-int-set (count nodeMaps) numPossMag))
   (loop [iter 0]
     ;;rand-int return a number between 0 and nodeMaps
     ;;in the loop rand-int return the same number more than 1 time
     ;;the execution let see store with capacity > 600
     ;;to-fix we have to consider the n already selected in the
     ;;previous loop iteration
-    (let [n (int (rand (count nodeMaps)))]
+    (let [n (nth randIdx iter)]
       (def nodeMaps (update-in nodeMaps [n :capacity] + storeCapacity))
-      ;;printing map just modified
-      (println (get nodeMaps n))
+      (def stores (conj stores (get nodeMaps n)))
       )
       (if (< iter numPossMag)
         (recur (inc iter))
-      )
-  )
+      ))
+
+  ;;creo l'array dei clienti
+  (def clients (into [] (set/difference (set nodeMaps) (set stores))))
+  ;;assegno i costi
+
+
+
 )
 
+(defn unique-rand-int-set
+  "genera un insieme di interi random non ripetuti"
+  [maxVal,numElem]
+  (let [a-set (set (take numElem (repeatedly #(rand-int maxVal))))]
+    (concat a-set (set/difference (set (take numElem (range))) a-set))
+  )
+)
 
 ;;------------------ MAIN -----------
 (defn -main
@@ -95,16 +111,16 @@
 
   ;;apro il file e lo leggo una riga alla volta, lo passo poi al parser
   ;; per l'inizializzazione della struttura dati che conterrà tutti i nodi
-  (with-open [rdr (io/reader "./src/clojure_training/lu980.txt")]
+  (with-open [rdr (io/reader "./resources/lu980.txt")]
     (parse (line-seq rdr)))
   
   ;;seleziono i possibili nodi magazzino e assegno i pesi
   (instanceInit)
 
   (println "Massima capacità: " storeCapacity "\nMassima domanda: "maxDemand)
-
   (println "Numero magazzini tot:" numPossMag)
- ;; (println (first nodeMaps))
+
+ ;; (println (set  stores))
 )
 
 
