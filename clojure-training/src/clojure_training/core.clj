@@ -5,43 +5,42 @@
   (:gen-class))
 
 
+;;---general purpose data structures--
+(def nodeMaps [])   ;array of maps, each map represents a node read from a TSP benchmark
+(def numPossMag)    ;number of possible storehouse locations 
+(def storeCapacity) ;number representing the maximum storehouse capacity, it is the same for every storehouse
+(def maxDemand)     ;every customer's demand varies from 1 to maxDemand (default: [1,20])  
+(def stores [])     ;an array of numPossMag nodes randomly choosen in nodeMaps
+(def clients [])    ;array of customers locations obtained as nodeMaps - stores
+;;---greedy function and GRASP data structures--
+(def subSetArray []);contains a random number of randomly choosen subsets of clients, every subsets represents the binding between a storehouse and its customers
 
-(def nodeMaps [])
-(def numPossMag)
-(def storeCapacity)
-(def maxDemand)
-(def stores []) ;;array of Storehouse from the nodeMaps list
-(def clients []) ;;array of Clients from the nodeMaps list
 
 
 
 
-
-;;-----------FUNZIONI PARSING-----------------
+;;-----------PARSING FUNCTIONS-----------------
 (defn initNode 
-  "inizializza la struttura dati con i dati del benchmark"
+  "nodeMaps initialization: nodeMaps is an array of maps, every map represents a node of the TSP"
   [seq]
   (def nodes (zipmap [:id :x :y :capacity] [(first seq) (second seq) (last seq) 0]))
   (def nodeMaps (conj nodeMaps nodes))
   )
 
 (defn parse
-"Parsing benchmark"
+"Read the TSP benchmark file and initialize the nodeMaps array"
   [lines]
-  (doseq [line lines] ;;itero su tutte le stringhe
+  (doseq [line lines] ;;iterates over all lines in file
     (let [lineSplit (take 3 (str/split  line #"\s"))] 
-         
             (if (number? (read-string (first lineSplit)))
               (initNode lineSplit) 
             )        
-    ) 
-  )
-) 
+))) 
+
 
 (defn parseParam
-  "Parameters parsing from input file"
+  "Read and parse the problem's parameters from an input file (given by command line)"
   [seq]
-  ;;iterate over the file per line
   (doseq [line seq]
     (let [lineSplit (take 2 (str/split line #":"))]
       (if (= (str/trim(first lineSplit)) (str/trim "STORE CAPACITY"))
@@ -49,55 +48,86 @@
       (if (= (str/trim(first lineSplit)) (str/trim "MAXIMUM DEMAND"))
         (def maxDemand (read-string (second lineSplit))))
     )
-  )
-)
-;;------------------------------------------- 
+))
+ 
 
-;;-----------FUNZIONI INIZIALIZZAZIONE ISTANZA
+;;-----------INSTANCE INITIALIZATION FUNCTIONS--
+
+(defn unique-rand-int-set
+  "Return a set of unique numElem random numbers in the range [0-maxVal] "
+  [maxVal,numElem]
+  (let [a-set (set (take numElem (repeatedly #(rand-int maxVal))))]
+    (concat a-set (set/difference (set (take numElem (range))) a-set))
+))
 
 (defn instanceInit
-  " "
+  "Instance initialization: 
+   computation of numPossMag, stores and clients arrays initialization"
   []
-  ;; determino una stima del numero minimo di magazzini necessari
-  ;;((numero clienti * max richiesta cliente)/ capacitàMag) + rand(0,20)
+
+  ;;First a lower bound to the number of storehouses needed to exaust the customers' demand is computed as
+  ;;   lower_bound = (numberOfCustomers * maxDemand)/storeCapacity
+  ;;Then the number of possible storehouse location is randomly choosen in the range [lower_bound, lower_bound+x] 
+  ;; where x is a random number between 0 and 20
   (def numPossMag (+ (rand-int 20)   
                      (quot (* (count nodeMaps) maxDemand) storeCapacity))) 
   
-  ;;select numPossMag randomly and assign them to storeCapacity
+  ;;select numPossMag indexes from the nodeMaps array 
   (def randIdx (unique-rand-int-set (count nodeMaps) numPossMag))
-  (loop [iter 0]
+  (loop [iter 1]
     ;;rand-int return a number between 0 and nodeMaps
     ;;in the loop rand-int return the same number more than 1 time
     ;;the execution let see store with capacity > 600
     ;;to-fix we have to consider the n already selected in the
-    ;;previous loop iteration
+    ;;previous loop iteration    ---> da cambiare? o tenere come memo?
     (let [n (nth randIdx iter)]
-      (def nodeMaps (update-in nodeMaps [n :capacity] + storeCapacity))
+      (def nodeMaps (update-in nodeMaps [n :capacity] + storeCapacity));;update the capacity of every storehouse location to storeCapacity
       (def stores (conj stores (get nodeMaps n)))
-      )
-      (if (< iter numPossMag)
-        (recur (inc iter))
-      ))
+    )
+    (if (< iter numPossMag)
+      (recur (inc iter))
+  ))
 
-  ;;creo l'array dei clienti
+  ;;clients array initialization: set(nodeMaps) - set(stores)
   (def clients (into [] (set/difference (set nodeMaps) (set stores))))
-  ;;assegno i costi
-
-
-
+  ;;capacity update
+  (loop [iter 0]
+    (let [num  (+ 1 (rand-int (- maxDemand 1)))] 
+      (def clients (update-in clients [iter :capacity] + num)) ;;assign to every customer a demand between 1 and maxDemand
+    ) 
+    (if (< iter (- (count clients) 1))
+      (recur (inc iter))
+  ))
 )
 
-(defn unique-rand-int-set
-  "genera un insieme di interi random non ripetuti"
-  [maxVal,numElem]
-  (let [a-set (set (take numElem (repeatedly #(rand-int maxVal))))]
-    (concat a-set (set/difference (set (take numElem (range))) a-set))
-  )
+;;----------------GREEDY FUNCTION------------
+(defn constrGreedySol
+ "Construction of a greedy solution to the problem, the greedy solution is used as input to the local search procedure.
+  The solution is computed using a set covering approach"
+ []
+
+ (def n (int (* numPossMag (+ 1(rand 0.5)))));;a random number of possible subsets
+ (def clients (shuffle clients))
+ (loop [idx 0]
+   (if (< idx (- n 1))
+     (def subSetArray (conj subSetArray (set (get clients idx))))
+   )
+   (if (< idx (- (count clients) 1))
+     (recur (inc idx))
+   )
+ )
+ ;;(println subSetArray)
 )
+
+
+
+
+
+
 
 ;;------------------ MAIN -----------
 (defn -main
-  "Carica i dati dal benchmark e risolve il problema di location routing"
+  "Location routing"
   [& args]
   (if (or (empty? args) 
           (> (count args) 1))
@@ -114,17 +144,27 @@
   (with-open [rdr (io/reader "./resources/lu980.txt")]
     (parse (line-seq rdr)))
   
-  ;;seleziono i possibili nodi magazzino e assegno i pesi
+  ;;instance initialization
   (instanceInit)
-
-  (println "Massima capacità: " storeCapacity "\nMassima domanda: "maxDemand)
-  (println "Numero magazzini tot:" numPossMag)
-
- ;; (println (set  stores))
-)
-
-
-
-
-
   
+  ;;GRASP procedure loop
+  (loop [iter 1]
+    ;;construction of a greedy solution as a starting point
+    (constrGreedySol)
+
+    ;;local search proceduere
+    ;;...TODO..
+
+    (if (< iter 1)
+      (recur (inc iter)))
+    )
+
+  (println "Massima capacità: "storeCapacity "\nMassima domanda: "maxDemand)
+  (println "Numero magazzini tot: "numPossMag)
+  
+ ;; (println (set  stores))
+
+
+
+
+  )
