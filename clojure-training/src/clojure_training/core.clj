@@ -75,11 +75,6 @@
   ;;select numPossMag indexes from the nodeMaps array 
   (def randIdx (unique-rand-int-set (count nodeMaps) numPossMag))
   (loop [iter 1]
-    ;;rand-int return a number between 0 and nodeMaps
-    ;;in the loop rand-int return the same number more than 1 time
-    ;;the execution let see store with capacity > 600
-    ;;to-fix we have to consider the n already selected in the
-    ;;previous loop iteration    ---> da cambiare? o tenere come memo?
     (let [n (nth randIdx iter)]
       (def nodeMaps (update-in nodeMaps [n :capacity] + storeCapacity));;update the capacity of every storehouse location to storeCapacity
       (def stores (conj stores (get nodeMaps n)))
