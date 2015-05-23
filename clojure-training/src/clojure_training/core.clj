@@ -75,6 +75,11 @@
   ;;select numPossMag indexes from the nodeMaps array 
   (def randIdx (unique-rand-int-set (count nodeMaps) numPossMag))
   (loop [iter 1]
+    ;;rand-int return a number between 0 and nodeMaps
+    ;;in the loop rand-int return the same number more than 1 time
+    ;;the execution let see store with capacity > 600
+    ;;to-fix we have to consider the n already selected in the
+    ;;previous loop iteration    ---> da cambiare? o tenere come memo?
     (let [n (nth randIdx iter)]
       (def nodeMaps (update-in nodeMaps [n :capacity] + storeCapacity));;update the capacity of every storehouse location to storeCapacity
       (def stores (conj stores (get nodeMaps n)))
@@ -104,21 +109,29 @@
  (def n (int (* numPossMag (+ 1(rand 0.5)))));;a random number of possible subsets
  (def clients (shuffle clients))
  (loop [idx 0]
+   (def subSetArray (conj subSetArray (set (get clients idx))))
    (if (< idx (- n 1))
-     (def subSetArray (conj subSetArray (set (get clients idx))))
-   )
+     (recur (inc idx))))
+
+ (loop [idx 0]
+
+   (let [repetition (unique-rand-int-set (- n 1) (+ 1 (rand-int (- n 1))))] ;;genero k numeri casuali tra 0 e n-1
+     
+     (loop [k 0]
+       (let [pk (get repetition k)]
+         (def subSetArray (assoc subSetArray  pk 
+                                 (set/union (get subSetArray pk) 
+                                            (set (get clients idx))))))
+       (if (< k (- (count repetition) 1))
+         (recur (inc k)))
+       ))
+
    (if (< idx (- (count clients) 1))
-     (recur (inc idx))
-   )
+     (recur (inc idx)))
  )
- ;;(println subSetArray)
+
+ (println (first subSetArray))
 )
-
-
-
-
-
-
 
 ;;------------------ MAIN -----------
 (defn -main
@@ -161,5 +174,4 @@
 
 
 
-
-  )
+)
