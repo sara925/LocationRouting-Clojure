@@ -109,19 +109,18 @@
  (def n (int (* numPossMag (+ 1(rand 0.5)))));;a random number of possible subsets
  (def clients (shuffle clients))
  (loop [idx 0]
-   (def subSetArray (conj subSetArray (set (get clients idx))))
+   (def subSetArray (conj subSetArray (into #{} (vector  (get clients idx)))))
    (if (< idx (- n 1))
      (recur (inc idx))))
 
  (loop [idx 0]
-
-   (let [repetition (unique-rand-int-set (- n 1) (+ 1 (rand-int (- n 1))))] ;;genero k numeri casuali tra 0 e n-1
-     
+   (let [repetition (unique-rand-int-set n (+ 1 (rand-int (- n 1))))] ;;genero k numeri casuali tra 0 e n-1
      (loop [k 0]
-       (let [pk (get repetition k)]
-         (def subSetArray (assoc subSetArray  pk 
+       (let [pk (nth repetition k)]
+         ;;(println pk)
+         (def subSetArray (assoc subSetArray  (int pk) 
                                  (set/union (get subSetArray pk) 
-                                            (set (get clients idx))))))
+                                            (vector (get clients idx))))))
        (if (< k (- (count repetition) 1))
          (recur (inc k)))
        ))
@@ -130,22 +129,27 @@
      (recur (inc idx)))
  )
 
- (println (first subSetArray))
+ ;;ordine decrescente
+ (shuffle subSetArray)
+ (doseq [c subSetArray]
+   (println (count c)))
+ ;(println (first subSetArray))
 )
 
 ;;------------------ MAIN -----------
+
 (defn -main
   "Location routing"
   [& args]
   (if (or (empty? args) 
           (> (count args) 1))
-      ;;set to default values
-      (do (def storeCapacity 600 )
-          (def maxDemand 20)) 
-      ;;read values from input file
-      (with-open [rdr (io/reader (str "./resources/"(first args)))]
-        (parseParam (line-seq rdr)))
-  )
+    ;;set to default values
+    (do (def storeCapacity 600 )
+        (def maxDemand 20)) 
+    ;;read values from input file
+    (with-open [rdr (io/reader (str "./resources/"(first args)))]
+      (parseParam (line-seq rdr)))
+    )
 
   ;;apro il file e lo leggo una riga alla volta, lo passo poi al parser
   ;; per l'inizializzazione della struttura dati che conterrà tutti i nodi
@@ -170,8 +174,8 @@
   (println "Massima capacità: "storeCapacity "\nMassima domanda: "maxDemand)
   (println "Numero magazzini tot: "numPossMag)
   
- ;; (println (set  stores))
+  ;; (println (set  stores))
 
 
 
-)
+  )
