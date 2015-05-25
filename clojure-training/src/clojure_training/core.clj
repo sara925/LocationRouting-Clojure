@@ -107,22 +107,29 @@
  []
 
  (def n (int (* numPossMag (+ 1(rand 0.5)))));;a random number of possible subsets
+ (def freeSpace (vec (repeat n storeCapacity)))
  (def clients (shuffle clients))
  (loop [idx 0]
-   (def subSetArray (conj subSetArray (into #{} (vector  (get clients idx)))))
+   (let [cli (get clients idx)]
+     (def subSetArray (conj subSetArray (into #{} (vector cli))))
+     (def freeSpace (assoc freeSpace idx (- (get freeSpace idx) (:capacity cli))))) ;;aggiorno le capacità residue
    (if (< idx (- n 1))
      (recur (inc idx))))
 
- (loop [idx 0]
-   (let [repetition (unique-rand-int-set n (+ 1 (rand-int (- n 1))))] ;;genero k numeri casuali tra 0 e n-1
+ ;;ciclo sui clienti
+ (loop [idx 0] 
+     (let [repeat (+ 1 (rand-int 4))] 
+     ;;ciclo repeat volte per individuare i subset
      (loop [k 0]
-       (let [pk (nth repetition k)]
-         ;;(println pk)
-         (def subSetArray (assoc subSetArray  (int pk) 
-                                 (set/union (get subSetArray pk) 
-                                            (vector (get clients idx))))))
-       (if (< k (- (count repetition) 1))
-         (recur (inc k)))
+       (let [pk (rand-int n) cli (get clients idx) subSetPk (get subSetArray pk) freePk (get freeSpace pk)]
+         (if (< k repeat) 
+           (if (and (not(contains? subSetPk cli)) (>= freePk (:capacity cli))) ;;se ci sta..
+               (do
+                 (def subSetArray (assoc subSetArray  (int pk)             
+                                         (set/union subSetPk (vector cli)))) ;;lo inserisco
+                 (def freeSpace (assoc freeSpace pk (- freePk (:capacity cli))));; aggiorno capcità residua
+                 (recur (inc k))) 
+               (recur k))))
        ))
 
    (if (< idx (- (count clients) 1))
@@ -130,10 +137,9 @@
  )
 
  ;;ordine decrescente
- (shuffle subSetArray)
  (doseq [c subSetArray]
    (println (count c)))
- ;(println (first subSetArray))
+ (println freeSpace)
 )
 
 ;;------------------ MAIN -----------
