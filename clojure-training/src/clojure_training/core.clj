@@ -82,7 +82,7 @@
     ;;previous loop iteration    ---> da cambiare? o tenere come memo?
     (let [n (nth randIdx iter)]
       (def nodeMaps (update-in nodeMaps [n :capacity] + storeCapacity));;update the capacity of every storehouse location to storeCapacity
-      (def stores (conj stores (get nodeMaps n)))
+      (def stores  (conj stores (assoc (get nodeMaps n) :build (+ (rand-int 15000) 1))))
     )
     (if (< iter numPossMag)
       (recur (inc iter))
@@ -115,7 +115,6 @@
      (def subSetArray (assoc subSetArray idx (conj (get subSetArray idx) {:S (rand-int (- numPossMag 1))})))) ;;aggiorno le capacità residue
    (if (< idx (- n 1))
      (recur (inc idx))))
- (println subSetArray)
  ;;ciclo sui clienti
  (loop [idx 0] 
      (let [repeat (+ 1 (rand-int 4))] 
@@ -135,7 +134,26 @@
    (if (< idx (- (count clients) 1))
      (recur (inc idx)))
  )
+ 
 )
+
+(defn ediff
+ [x1 x2]
+ (println x1 x2)
+ (Math/pow (- (Float/parseFloat x1) (Float/parseFloat x2)) 2)
+)
+
+(defn computeCost 
+  [map1 map2]
+  (Math/sqrt (+ (ediff (:x map1) (:x map2)) (ediff (:y map1) (:y map2))))
+)
+
+(defn compSetCost
+ [set]
+ (let [store (get stores (:S set))]
+   (println (reduce +
+                    (doseq [x set] (computeCost x store) ))))
+ )
 
 (defn constrGreedySol
  "Construction of a greedy solution to the problem, the greedy solution is used as input to the local search procedure.
@@ -143,7 +161,13 @@
   []
   
   (initSubSetArray)
-
+  (def costs [])
+  ;;compute the cost of each set
+  (doseq [pk subSetArray ]
+   ;; (def costs)
+    ;;(conj costs)
+    (compSetCost pk)
+    )
 )
 
 ;;------------------ MAIN -----------
@@ -183,7 +207,7 @@
 
   (println "Massima capacità: "storeCapacity "\nMassima domanda: "maxDemand)
   (println "Numero magazzini tot: "numPossMag)
-  
+  (println (computeCost (first (first subSetArray)) (second (first subSetArray)) ))
   ;; (println (set  stores))
 
 
