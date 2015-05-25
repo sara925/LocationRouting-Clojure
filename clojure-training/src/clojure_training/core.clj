@@ -101,9 +101,8 @@
 )
 
 ;;----------------GREEDY FUNCTION------------
-(defn constrGreedySol
- "Construction of a greedy solution to the problem, the greedy solution is used as input to the local search procedure.
-  The solution is computed using a set covering approach"
+(defn initSubSetArray
+ "...TODO..."
  []
 
  (def n (int (* numPossMag (+ 1(rand 0.5)))));;a random number of possible subsets
@@ -112,10 +111,11 @@
  (loop [idx 0]
    (let [cli (get clients idx)]
      (def subSetArray (conj subSetArray (into #{} (vector cli))))
-     (def freeSpace (assoc freeSpace idx (- (get freeSpace idx) (:capacity cli))))) ;;aggiorno le capacità residue
+     (def freeSpace (assoc freeSpace idx (- (get freeSpace idx) (:capacity cli))))
+     (def subSetArray (assoc subSetArray idx (conj (get subSetArray idx) {:S (rand-int (- numPossMag 1))})))) ;;aggiorno le capacità residue
    (if (< idx (- n 1))
      (recur (inc idx))))
-
+ (println subSetArray)
  ;;ciclo sui clienti
  (loop [idx 0] 
      (let [repeat (+ 1 (rand-int 4))] 
@@ -135,11 +135,15 @@
    (if (< idx (- (count clients) 1))
      (recur (inc idx)))
  )
+)
 
- ;;ordine decrescente
- (doseq [c subSetArray]
-   (println (count c)))
- (println freeSpace)
+(defn constrGreedySol
+ "Construction of a greedy solution to the problem, the greedy solution is used as input to the local search procedure.
+  The solution is computed using a set covering approach"
+  []
+  
+  (initSubSetArray)
+
 )
 
 ;;------------------ MAIN -----------
