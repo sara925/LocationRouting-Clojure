@@ -52,7 +52,6 @@
  
 
 ;;-----------INSTANCE INITIALIZATION FUNCTIONS--
-
 (defn unique-rand-int-set
   "Return a set of unique numElem random numbers in the range [0-maxVal] "
   [maxVal,numElem]
@@ -82,7 +81,7 @@
     ;;previous loop iteration    ---> da cambiare? o tenere come memo?
     (let [n (nth randIdx iter)]
       (def nodeMaps (update-in nodeMaps [n :capacity] + storeCapacity));;update the capacity of every storehouse location to storeCapacity
-      (def stores  (conj stores (assoc (get nodeMaps n) :build (+ (rand-int 15000) 1))))
+      (def stores (conj stores (get nodeMaps n)))
     )
     (if (< iter numPossMag)
       (recur (inc iter))
@@ -134,12 +133,11 @@
    (if (< idx (- (count clients) 1))
      (recur (inc idx)))
  )
- 
 )
 
 (defn ediff
  [x1 x2]
- (println x1 x2)
+; (println x1 x2)
  (Math/pow (- (Float/parseFloat x1) (Float/parseFloat x2)) 2)
 )
 
@@ -149,11 +147,12 @@
 )
 
 (defn compSetCost
- [set]
- (let [store (get stores (:S set))]
-   (println (reduce +
-                    (doseq [x set] (computeCost x store) ))))
- )
+  [s1]
+  (let [store (get stores (:S s1))]
+    (println (count s1))
+    (computeCost (first s1) (second s1))
+    )
+)
 
 (defn constrGreedySol
  "Construction of a greedy solution to the problem, the greedy solution is used as input to the local search procedure.
@@ -162,12 +161,11 @@
   
   (initSubSetArray)
   (def costs [])
-  ;;compute the cost of each set
-  (doseq [pk subSetArray ]
-   ;; (def costs)
-    ;;(conj costs)
-    (compSetCost pk)
-    )
+  (doseq [pk subSetArray] 
+    (compSetCost pk))
+
+
+  (println (count (first subSetArray)))
 )
 
 ;;------------------ MAIN -----------
@@ -207,7 +205,7 @@
 
   (println "Massima capacità: "storeCapacity "\nMassima domanda: "maxDemand)
   (println "Numero magazzini tot: "numPossMag)
-  (println (computeCost (first (first subSetArray)) (second (first subSetArray)) ))
+  
   ;; (println (set  stores))
 
 
