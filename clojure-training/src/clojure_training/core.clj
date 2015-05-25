@@ -111,9 +111,11 @@
    (let [cli (get clients idx)]
      (def subSetArray (conj subSetArray (into #{} (vector cli))))
      (def freeSpace (assoc freeSpace idx (- (get freeSpace idx) (:capacity cli))))
-     (def subSetArray (assoc subSetArray idx (conj (get subSetArray idx) {:S (rand-int (- numPossMag 1))})))) ;;aggiorno le capacità residue
+     (def subSetArray (assoc subSetArray idx (conj (get subSetArray idx) (rand-int (- numPossMag 1)))))) 
+  
    (if (< idx (- n 1))
      (recur (inc idx))))
+
  ;;ciclo sui clienti
  (loop [idx 0] 
      (let [repeat (+ 1 (rand-int 4))] 
@@ -137,7 +139,7 @@
 
 (defn ediff
  [x1 x2]
-; (println x1 x2)
+ (println x1 x2)
  (Math/pow (- (Float/parseFloat x1) (Float/parseFloat x2)) 2)
 )
 
@@ -148,10 +150,10 @@
 
 (defn compSetCost
   [s1]
-  (let [store (get stores (:S s1))]
-    (println (count s1))
-    (computeCost (first s1) (second s1))
-    )
+  (let [store (get stores (s1 :S))]
+    (println  (some #(if (number? %)%) s1))
+   ; (computeCost store (second s1))
+  )
 )
 
 (defn constrGreedySol
@@ -163,9 +165,8 @@
   (def costs [])
   (doseq [pk subSetArray] 
     (compSetCost pk))
-
-
-  (println (count (first subSetArray)))
+  
+ ; (println (count (first subSetArray)))
 )
 
 ;;------------------ MAIN -----------
