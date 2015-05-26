@@ -159,22 +159,46 @@
   )
 )
 
+(defn unionCollection
+  [aset]
+  (def un {})
+  (doseq [x aset] (def un (set/union un  x)))
+  un
+  )
+
 (defn constrGreedySol
  "Construction of a greedy solution to the problem, the greedy solution is used as input to the local search procedure.
   The solution is computed using a set covering approach"
   []
-
+  ;;vector of cover J
+  (def J [])
   (initSubSetArray)
-  (def costs [])
-  (doseq [idx (range (count subSetArray))] 
-    (def costs (conj costs (zipmap [:pos :cost] [idx (compSetCost (get subSetArray idx))]))))
-  (def costs (sort-by :cost costs)) ;;li ordino per costo crescente
-  
-  ;(def costs (sort-by :cost costs))
-  
-)
+  ;;local copy of subSetArray
+  (def subSetL (vec subSetArray))
+  (loop [iter 0]
+    ;;loop body
 
-;;------------------ MAIN -----------
+    (def costs [])
+    (doseq [idx (range (count subSetL))] 
+      (def costs (conj costs (zipmap [:pos :cost] [idx (compSetCost (get subSetL idx))]))))
+    (def costs (sort-by :cost costs)) ;;li ordino per costo crescente
+    
+
+    (def beta (* 1.3 (:cost (first costs))))
+    (def  P (filter #(< (:cost %) beta ) costs))
+    ;;index of P element to build cover J
+    (def k (rand-int (- (count P) 1)))
+    
+    (let [pk (get subSetL k)]
+     (def J (conj J pk))
+     (doseq [i (range (count subSetL))] (def subSetL (assoc subSetL i (set/difference (nth subSetL i) pk))))
+      )
+    (println (first (first J)))
+    ;;TO_DO mettere not
+    (if (empty? (unionCollection subSetL)) 
+      (recur (inc iter))))  
+  ;;------------------ MAIN -----------
+)
 
 (defn -main
   "Location routing"
