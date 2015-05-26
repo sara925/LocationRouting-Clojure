@@ -84,8 +84,7 @@
       (def stores (conj stores (get nodeMaps n)))
     )
     (if (< iter numPossMag)
-      (recur (inc iter))
-  ))
+      (recur (inc iter))))
 
   ;;clients array initialization: set(nodeMaps) - set(stores)
   (def clients (into [] (set/difference (set nodeMaps) (set stores))))
@@ -95,8 +94,11 @@
       (def clients (update-in clients [iter :capacity] + num)) ;;assign to every customer a demand between 1 and maxDemand
     ) 
     (if (< iter (- (count clients) 1))
-      (recur (inc iter))
-  ))
+      (recur (inc iter))))
+
+   ;;aggiungo i costi di costruzione (lo faccio qui altrimenti non riesco a costruire
+   ;;clienti, la differenza non matcha)
+   (def stores (vec (map #(assoc % :build (+ 10000 (rand 10000))) stores))) 
 )
 
 ;;----------------GREEDY FUNCTION------------
@@ -139,7 +141,6 @@
 
 (defn ediff
  [x1 x2]
- (println x1 x2)
  (Math/pow (- (Float/parseFloat x1) (Float/parseFloat x2)) 2)
 )
 
@@ -150,9 +151,11 @@
 
 (defn compSetCost
   [s1]
-  (let [store (get stores (s1 :S))]
-    (println  (some #(if (number? %)%) s1))
-   ; (computeCost store (second s1))
+  (def array [])
+  ;;stimo il costo del ciclo hamiltoniano come la somma delle distanze dirette dal magazzino ai nodi associati
+  (let [storeNum (some #(if (number? %) %) s1 )]
+    (doseq [cl s1] (and (map? cl) (def array (conj array (computeCost  cl (get stores storeNum))))))
+    (+ (reduce + array) (:build (get stores storeNum)))
   )
 )
 
@@ -160,13 +163,15 @@
  "Construction of a greedy solution to the problem, the greedy solution is used as input to the local search procedure.
   The solution is computed using a set covering approach"
   []
-  
+
   (initSubSetArray)
   (def costs [])
-  (doseq [pk subSetArray] 
-    (compSetCost pk))
+  (doseq [idx (range (count subSetArray))] 
+    (def costs (conj costs (zipmap [:pos :cost] [idx (compSetCost (get subSetArray idx))]))))
+  (def costs (sort-by :cost costs)) ;;li ordino per costo crescente
   
- ; (println (count (first subSetArray)))
+  ;(def costs (sort-by :cost costs))
+  
 )
 
 ;;------------------ MAIN -----------
