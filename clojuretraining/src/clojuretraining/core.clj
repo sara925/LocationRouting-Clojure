@@ -96,13 +96,16 @@
     (let [ dist (computeCost cl store) slot (quot (computeCost cl store)  r)]
       ;;(println cl)
       ;(println (/ (computeCost cl store) r))
-      (println slot)
-      (def slots (assoc slots (int slot) (conj (get slots slot)  {:probability 0 :dist dist :cl cl})))
-      ;(def sumSlotDist (update-in sumSlotDist[slot] + dist))
+      ;;(println slot)
+      (def slots (assoc slots (int slot) (conj (get slots (int slot)) 
+ {:probability 0 :dist dist :cl cl})))
+      (def sumSlotDist (update-in sumSlotDist[(int slot)] + dist))
     ))
   (println r)
   (println "num slots: "(count slots))
-  (println (first slots))
+ ;; (println (first slots))
+  ;;print of probabilty per slots
+  (println "Sums of probability per slot" sumSlotDist)
   ;assegno le probabilità ai clienti
   
 
