@@ -72,8 +72,8 @@
       (def maxX Xmax))
 
      (if (> (math/abs (- Ys Ymin))  (math/abs (- Ys Ymax))) 
-      (def maxX Ymin)
-      (def maxX Ymax))
+      (def maxY Ymin)
+      (def maxY Ymax))
 
    ; (first (apply min-key second (map-indexed vector [1 2 4 0 5])))
    ; (def maxX (max (math/abs (- Xs Xmin)) (math/abs (- Xs Xmax))))
@@ -94,8 +94,10 @@
   ;assegno ogni cliente ad una fascia
   (doseq [cl clients]
     (let [ dist (computeCost cl store) slot (quot (computeCost cl store)  r)]
-      (println (/ (computeCost cl store) r))
-      (def slots (assoc slots (int slot) (conj (get slots slot) {:probability 0 :dist dist :cl cl})))
+      ;;(println cl)
+      ;(println (/ (computeCost cl store) r))
+      (println slot)
+      (def slots (assoc slots (int slot) (conj (get slots slot)  {:probability 0 :dist dist :cl cl})))
       ;(def sumSlotDist (update-in sumSlotDist[slot] + dist))
     ))
   (println r)
