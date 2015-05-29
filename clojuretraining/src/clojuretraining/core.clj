@@ -3,6 +3,7 @@
   (:require [clojure.java.io :as io])
   (:require [clojure.string :as str])
   (:require [clojure.set :as set])
+  (:require [clojure.math.numeric-tower :as math])
 
   ;(:use [clojuretraining.instanceinit :as myinit])
   ;(:require [clojuretraining.instanceinit :as myinit])
@@ -21,52 +22,25 @@
 
 ;;---greedy function and GRASP data structures--
 (def subSetArray []);contains a random number of randomly choosen subsets of clients, every subsets represents the binding between a storehouse and its customers
-;;----------------GREEDY FUNCTION------------
-(defn initSubSetArray
- "...TODO..."
- []
 
- (def n (int (* numPossMag (+ 1(rand 0.5)))));;a random number of possible subsets
- (def freeSpace (vec (repeat n storeCapacity)))
- (def clients (shuffle clients))
- (loop [idx 0]
-   (let [cli (get clients idx)]
-     (def subSetArray (conj subSetArray (into #{} (vector cli))))
-     (def freeSpace (assoc freeSpace idx (- (get freeSpace idx) (:capacity cli))))
-     (def subSetArray (assoc subSetArray idx (conj (get subSetArray idx) (rand-int (- numPossMag 1)))))) 
-  
-   (if (< idx (- n 1))
-     (recur (inc idx))))
+(def borders {:xmin 0 :xmax 0 :ymin 0 :ymax 0})
 
- ;;ciclo sui clienti
- (loop [idx 0] 
-     (let [repeat (+ 1 (rand-int 4))] 
-     ;;ciclo repeat volte per individuare i subset
-     (loop [k 0]
-       (let [pk (rand-int n) cli (get clients idx) subSetPk (get subSetArray pk) freePk (get freeSpace pk)]
-         (if (< k repeat) 
-           (if (and (not(contains? subSetPk cli)) (>= freePk (:capacity cli))) ;;se ci sta..
-               (do
-                 (def subSetArray (assoc subSetArray  (int pk)             
-                                         (set/union subSetPk (vector cli)))) ;;lo inserisco
-                 (def freeSpace (assoc freeSpace pk (- freePk (:capacity cli))));; aggiorno capcità residua
-                 (recur (inc k))) 
-               (recur k))))
-       ))
-
-   (if (< idx (- (count clients) 1))
-     (recur (inc idx)))
- )
+(defn find-border-customers 
+  []
+  (def borders (update-in borders [:xmin] + (:x (first (sort-by :x  clients)))))
+  (def borders (update-in borders [:ymin] + (:y (first (sort-by :y clients)))))
+  (def borders (update-in borders [:xmax] + (:x (last (sort-by :x clients)))))
+  (def borders (update-in borders [:ymax] + (:y (last (sort-by :y clients)))))
 )
 
 (defn ediff
  [x1 x2]
- (Math/pow (- (Float/parseFloat x1) (Float/parseFloat x2)) 2)
+ (math/expt (- x1 x2) 2)
 )
 
 (defn computeCost 
   [map1 map2]
-  (Math/sqrt (+ (ediff (:x map1) (:x map2)) (ediff (:y map1) (:y map2))))
+  (math/sqrt (+ (ediff (:x map1) (:x map2)) (ediff (:y map1) (:y map2))))
 )
 
 (defn compSetCost
@@ -86,37 +60,51 @@
   un
 )
 
-(defn constrGreedySol
- "Construction of a greedy solution to the problem, the greedy solution is used as input to the local search procedure.
-  The solution is computed using a set covering approach"
-  []
-  ;;vector of cover J
-  (def J [])
-  (initSubSetArray)
-  ;;local copy of subSetArray
-  (def subSetL (vec subSetArray))
-  (loop [iter 0]
-    ;;loop body
 
-    (def costs [])
-    (doseq [idx (range (count subSetL))] 
-      (def costs (conj costs (zipmap [:pos :cost] [idx (compSetCost (get subSetL idx))]))))
-    (def costs (sort-by :cost costs)) ;;li ordino per costo crescente
+(defn find-radius
+  [store]
+  
+  (def radius)
+  (let [Xs (:x store) Ys (:y store) Xmin (:xmin borders) Xmax (:xmax borders) Ymin (:ymin borders) Ymax (:ymax borders)]
     
+    (if (> (math/abs (- Xs Xmin))  (math/abs (- Xs Xmax))) 
+      (def maxX Xmin)
+      (def maxX Xmax))
 
-    (def beta (* 1.3 (:cost (first costs))))
-    (def  P (filter #(< (:cost %) beta ) costs))
-    ;;index of P element to build cover J
-    (def k (rand-int (- (count P) 1)))
-    
-    (let [pk (get subSetL k)]
-     (def J (conj J pk))
-     (doseq [i (range (count subSetL))] (def subSetL (assoc subSetL i (set/difference (nth subSetL i) pk))))
-      )
-    (println (first (first J)))
-    ;;TO_DO mettere not
-    (if (empty? (unionCollection subSetL)) 
-      (recur (inc iter))))  
+     (if (> (math/abs (- Ys Ymin))  (math/abs (- Ys Ymax))) 
+      (def maxX Ymin)
+      (def maxX Ymax))
+
+   ; (first (apply min-key second (map-indexed vector [1 2 4 0 5])))
+   ; (def maxX (max (math/abs (- Xs Xmin)) (math/abs (- Xs Xmax))))
+    ;(def maxY (max (math/abs (- Ys Ymin)) (math/abs (- Ys Ymax))))
+    (math/sqrt (+ (ediff maxX Xs) (ediff maxY Ys)))
+  )
+)
+
+(defn initSubSetArray
+  [store]
+  (println "\nraggio max "(find-radius store))
+  
+  (def r (/ (find-radius store) 4))
+
+  (def slots [[] [] [] []])
+  (def sumSlotDist [0 0 0 0])
+  
+  ;assegno ogni cliente ad una fascia
+  (doseq [cl clients]
+    (let [ dist (computeCost cl store) slot (quot (computeCost cl store)  r)]
+      (println (/ (computeCost cl store) r))
+      (def slots (assoc slots (int slot) (conj (get slots slot) {:probability 0 :dist dist :cl cl})))
+      ;(def sumSlotDist (update-in sumSlotDist[slot] + dist))
+    ))
+  (println r)
+  (println "num slots: "(count slots))
+  (println (first slots))
+  ;assegno le probabilità ai clienti
+  
+
+
 )
 
 ;;------------------ MAIN -----------
@@ -141,7 +129,7 @@
   ;;GRASP procedure loop
   (loop [iter 1]
     ;;construction of a greedy solution as a starting point
-    (constrGreedySol)
+    
 
     ;;local search proceduere
     ;;...TODO..
@@ -156,5 +144,7 @@
   ;; (println (set  stores))
 
 
-
+  (find-border-customers)
+  (initSubSetArray (first stores))
+  
 )

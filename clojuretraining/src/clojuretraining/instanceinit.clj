@@ -1,7 +1,6 @@
 (in-ns 'clojuretraining.core)
 
  
-
 ;;leggi il file e inizializza nodeMaps
 (defn read-benchmark-file 
  "Leggo un file di nodi e creo la struttura nodeMaps"
@@ -11,8 +10,8 @@
    (let [lines (line-seq rdr)]
 
      (doseq [line lines] 
-       (let [nodeVal (take 3 (str/split  line #"\s"))] 
-	  (if (number? (read-string (first nodeVal)))
+       (let [nodeVal (map read-string (take 3 (str/split  line #"\s")))] 
+         (if (number? (first nodeVal))
 
             (def nodeMaps (conj nodeMaps (zipmap [:id :x :y :capacity] [(first nodeVal) (second nodeVal) (last nodeVal) 0]))))
        ))
