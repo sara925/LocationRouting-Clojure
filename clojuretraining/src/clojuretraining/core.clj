@@ -163,20 +163,27 @@
   (doseq [iter (range (count stores))] 
  
     (def slots (assignProbability (get stores iter)))
-
-    (def subSet #{ iter })
-    (def subSet (createSubSet slots subSet))
-    (def subSetArray (conj subSetArray subSet))
-    ;;second subset for that store
-    ;;(println (contains? subSet iter))
-    (def subSet #{ iter } )
-    (def subSet (createSubSet slots subSet))
-    (def subSetArray (conj subSetArray subSet))
     
+    (doseq [x (range 3)]
+      (def subSet #{ iter })
+      (def subSet (createSubSet slots subSet))
+      (def subSetArray (conj subSetArray subSet)))
+        
   )
 
   
- ( (count (set/difference (set clients) (set/intersection  (set clients) (reduce set/union  subSetArray )))))
+  (def notAssigned (set/difference (set clients) (set/intersection  (set clients) (reduce set/union  subSetArray ))))
+  (if (not (empty? notAssigned))
+
+    (def {:idM 0 :minD Long/MAX_VALUE})
+    (doseq [c notAssigned]
+       (doseq [m stores]
+           (computeCost c m ))
+    ))
+
+
+
+
 )
 
 
