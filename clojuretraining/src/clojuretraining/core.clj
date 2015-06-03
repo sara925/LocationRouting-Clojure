@@ -24,6 +24,7 @@
 (def subSetArray []);contains a random number of randomly choosen subsets of clients, every subsets represents the binding between a storehouse and its customers
 
 (def borders {:xmin 0 :xmax 0 :ymin 0 :ymax 0})
+(def slotsProbability (reductions + [50 30 15 5]))  ;probabilità delle varie fasce
 
 (defn find-border-customers 
   []
@@ -82,9 +83,8 @@
   )
 )
 
-(defn initSubSetArray
+(defn assignProbability
   [store]
-  (println "\nraggio max "(find-radius store))
   
   (def r (/ (find-radius store) 4))
 
@@ -94,23 +94,61 @@
   ;assegno ogni cliente ad una fascia
   (doseq [cl clients]
     (let [ dist (computeCost cl store) slot (quot (computeCost cl store)  r)]
-      ;;(println cl)
-      ;(println (/ (computeCost cl store) r))
-      ;;(println slot)
-      (def slots (assoc slots (int slot) (conj (get slots (int slot)) 
- {:probability 0 :dist dist :cl cl})))
+
+      (def slots (assoc slots (int slot) (conj (get slots (int slot)) {:probability 0 :dist dist :cl cl})))
       (def sumSlotDist (update-in sumSlotDist[(int slot)] + dist))
+
     ))
-  (println r)
-  (println "num slots: "(count slots))
- ;; (println (first slots))
-  ;;print of probabilty per slots
-  (println "Sums of probability per slot" sumSlotDist)
+ 
   ;assegno le probabilità ai clienti
+  (doseq [i (range 4)]
+    (let [sumDist (get sumSlotDist i) slot_i (get slots i)]
+      (doseq [j (range (count slot_i))]
+        
+        (let [ probClj (/ (- sumDist (:dist (get slot_i j))) sumDist)]
+          (def slots (assoc slots i (assoc-in (get slots i) [j :probability] probClj ))))
+  )))
+
+  slots
+)
+
+(defn fish
+  [coll]
   
+  (def randomVal (rand (last coll)))
+  (let [selected (apply min (filter #(> % randomVal) coll))]
+    
+    (.indexOf coll selected))
+)
+
+(defn createCumulativeSlots
+  [slots]
+
+  (doall (map #(reductions +  (map :probability %)) slots))
+)
+
+(defn createSubSet 
+ [slots, subSet]
+ 
+ (def freeSpace storeCapacity)
+ (def slotsCum (createCumulativeSlots slots));lista di liste cumulative
+ (loop [iter 0]
+   (let [idx (fish slotsProbability)  idx2 (fish (nth slotsCum idx))]
+
+     
+   )
+
+   ;memo: chiama reductions + su slot(i)
+
+   (if (< iter 0)  ;(> freeSpace maxDemand) 
+     (recur (inc iter)))
+ )
+
 
 
 )
+
+
 
 ;;------------------ MAIN -----------
 (defn -main
@@ -143,13 +181,14 @@
       (recur (inc iter)))
     )
 
-  (println "Massima capacità: "storeCapacity "\nMassima domanda: "maxDemand)
+  (println "Massima capacità: "storeCapacity " Massima domanda: "maxDemand)
   (println "Numero magazzini tot: "numPossMag)
   
   ;; (println (set  stores))
 
 
   (find-border-customers)
-  (initSubSetArray (first stores))
-  
+  (def slots (assignProbability (first stores)))
+  (createSubSet slots #{})
+
 )
