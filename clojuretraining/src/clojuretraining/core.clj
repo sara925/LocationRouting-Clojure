@@ -89,14 +89,14 @@
   (def r (/ (find-radius store) 4))
 
   (def slots [[] [] [] []])
-  (def sumSlotDist [0 0 0 0])
+  (def sumSlotDist [r (* 2 r) (* 3 r) (* 4 r)])
   
   ;assegno ogni cliente ad una fascia
   (doseq [cl clients]
     (let [ dist (computeCost cl store) slot (quot (computeCost cl store)  r)]
 
       (def slots (assoc slots (int slot) (conj (get slots (int slot)) {:probability 0 :dist dist :cl cl})))
-      (def sumSlotDist (update-in sumSlotDist[(int slot)] + dist))
+     ; (def sumSlotDist (update-in sumSlotDist[(int slot)] + dist))
 
     ))
  
@@ -115,10 +115,10 @@
 (defn fish
   [coll]
   
-  (def randomVal (rand (last coll)))
+  (def randomVal (rand (last  coll)))
   (let [selected (apply min (filter #(> % randomVal) coll))]
     
-    (.indexOf coll selected))
+  (.indexOf coll selected))
 )
 
 (defn createCumulativeSlots
@@ -130,24 +130,54 @@
 (defn createSubSet 
  [slots, subSet]
  
- (def freeSpace storeCapacity)
+ (def tmp subSet) (def freeSpace storeCapacity)
  (def slotsCum (createCumulativeSlots slots));lista di liste cumulative
+
  (loop [iter 0]
-   (let [idx (fish slotsProbability)  idx2 (fish (nth slotsCum idx))]
+   (let [idx (fish slotsProbability)] 
 
-     
-   )
+     (if (not (empty? (get slots idx)))
+       
+       (do 
+         (let [idx2 (fish (nth slotsCum idx)) cl (:cl (get (get slots idx) idx2))] 
+              (if (not (contains? tmp cl)) 
+                (do (def tmp (set/union tmp (into #{} (vector cl))))
+                    (def freeSpace (- freeSpace (:capacity cl)))))
+              ))))
 
-   ;memo: chiama reductions + su slot(i)
-
-   (if (< iter 0)  ;(> freeSpace maxDemand) 
+   (if (> freeSpace maxDemand) 
      (recur (inc iter)))
  )
 
-
-
+ tmp
 )
 
+
+(defn initSubSetArray
+ []
+
+  (find-border-customers)
+
+   
+
+  (doseq [iter (range (count stores))] 
+ 
+    (def slots (assignProbability (get stores iter)))
+
+    (def subSet #{ iter })
+    (def subSet (createSubSet slots subSet))
+    (def subSetArray (conj subSetArray subSet))
+    ;;second subset for that store
+    ;;(println (contains? subSet iter))
+    (def subSet #{ iter } )
+    (def subSet (createSubSet slots subSet))
+    (def subSetArray (conj subSetArray subSet))
+    
+  )
+
+  
+ ( (count (set/difference (set clients) (set/intersection  (set clients) (reduce set/union  subSetArray )))))
+)
 
 
 ;;------------------ MAIN -----------
@@ -184,11 +214,7 @@
   (println "Massima capacità: "storeCapacity " Massima domanda: "maxDemand)
   (println "Numero magazzini tot: "numPossMag)
   
-  ;; (println (set  stores))
 
-
-  (find-border-customers)
-  (def slots (assignProbability (first stores)))
-  (createSubSet slots #{})
+   (initSubSetArray)
 
 )
