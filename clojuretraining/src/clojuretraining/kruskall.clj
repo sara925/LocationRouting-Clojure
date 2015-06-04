@@ -2,18 +2,7 @@
 ;;(use 'jordanlewis.data.union-find)
 
 ;;funzione per la creazione della 
-(defn setToUn
-  "Function to convert a Set of Maps to a Union-find 
-  to perform the Kruskall Algorithm"
-  ;;dal set pkesima all'union find
-  [pk]
-  (def un (union-find))
-  ;;scorro tutto il set e riaggiorno un
-  ;;come la conj dell'union-find e la mappa del cliente
-  (doseq [cli pk]
-    (def un (conj un cli)))
-  un
-)
+
 
 (defn linkCosts 
   [m1 m2]
@@ -25,23 +14,17 @@
   ret
 )
 
-(defn prova 
-[x set]
-(map #(linkCosts x %) (subvec set x))
-)
+
 
 (defn linkArray
   [set]
-  (def linkarray [])
+  (def linkArray [])
   ;;il set deve contenere anche il magazzino
-  (def ret)
   (doseq [x set]
-    (def ret (conj ret (fn [x]
-                         (def ret1 (map #(linkCosts x %) (subvec set x)))
-                         ret1 ))
-)
-    )
-  ret
+    (doseq [y (subvec set x)]
+      (def linkArray (conj linkArray (linkCosts x y))))
+  )
+  linkArray
 )
 
 
