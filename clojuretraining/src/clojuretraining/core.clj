@@ -122,5 +122,6 @@
   
 
    (initSubSetArray)
-
+   (def provam (into [] (first subSetArray)))
+   ;(MST provam)
 )

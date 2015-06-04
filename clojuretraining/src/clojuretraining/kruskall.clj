@@ -8,7 +8,7 @@
   [m1 m2]
   (def ret)
   (let [cost (computeCost m1 m2)]
-    (def ret [[(:x m1) (:y m1)] [(:x m2) (:y m2)] cost])
+    (def ret [[{:x (:x m1) :y (:y m1)}] [{:x (:x m2) :y (:y m2)}] cost])
     )
   ret
 )
@@ -27,10 +27,15 @@
 )
 
 (defn make-union-find [nodes]
+  ;;TODO da cambiare non restiusce una notazione di mappa
   (apply hash-map (mapcat (fn[x][x [x [x]]]) nodes)))
 
 (defn joined? [union-find a b]
-  (println (first (union-find a)) (first (union-find b))  )
+  (println "uf a" (union-find a) "uf b"  (union-find b)  )
+  ;;(println "union-find" union-find)
+  ;;(def mmm (union-find a))
+  ;;(println "mmm a" mmm)
+  ;;(println "f a" (union-find  a) "f b"(union-find  b)  )
   (= (first (union-find a)) (first (union-find b))))
 
 
