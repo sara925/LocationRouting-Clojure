@@ -8,7 +8,7 @@
   [m1 m2]
   (def ret)
   (let [cost (computeCost m1 m2)]
-    (def ret [[{:x (:x m1) :y (:y m1)}] [{:x (:x m2) :y (:y m2)}] cost])
+    (def ret [{:x (:x m1) :y (:y m1)} {:x (:x m2) :y (:y m2)} cost])
     )
   ret
 )
