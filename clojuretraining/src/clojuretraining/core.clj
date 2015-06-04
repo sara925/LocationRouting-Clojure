@@ -54,34 +54,37 @@
  tmp
 )
 
+(defn find-best-store
+  [cl]
+  ;trovo il magazzino a distanza minore da cl, ritorno costo e nodo magazzino in un array 
+  (apply min-key #(first %) (map #(vector (computeCost cl %) %) stores)))
+
+
+(defn assign-to-set
+  [cl, set]
+
+  (find-best-store cl)
+)
 
 (defn initSubSetArray
  []
 
   (find-border-customers)
-
   (doseq [iter (range (count stores))] 
  
     (def slots (assignProbability (get stores iter)))
-    
     (doseq [x (range 3)]
-      (def subSet #{ iter })
+      (def subSet #{ {:store (get stores iter)} {:x 1 :y 2} }) ;TODO aggiungi il set
+      (println (select-keys subSet [:store]))
       (def subSet (createSubSet slots subSet))
       (def subSetArray (conj subSetArray subSet)))
         
   )
 
-  
   (def notAssigned (set/difference (set clients) (set/intersection  (set clients) (reduce set/union  subSetArray ))))
   (if (not (empty? notAssigned))
-
-    ;li assegno al magazzino che è loro più vicino
-    (doseq [c notAssigned]
-      (def minDistMag {:idM 0 :minD Long/MAX_VALUE})
-       (doseq [m stores]
-           (computeCost c m ))
-    ))
-
+    ()  
+  )
 
 )
 
