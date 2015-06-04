@@ -11,7 +11,7 @@
 
 (load "instanceinit")
 (load "subsetinit")
-
+(load "kruskall")
  
 ;;---general purpose data structures--
 (def nodeMaps [])   ;array of maps, each map represents a node read from a TSP benchmark
