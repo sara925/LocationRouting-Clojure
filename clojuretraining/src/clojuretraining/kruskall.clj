@@ -70,8 +70,8 @@
   (def tree  (make-union-find tree))
   
   ;MST
-  ;(reduce + (map (fn [[_ _ x]] x) (second (reduce add-link [tree '()] links))))
-  (second (reduce add-link [tree '()] links))
+  (reduce + (map (fn [[_ _ x]] x) (second (reduce add-link [tree '()] links))))
+  ;(second (reduce add-link [tree '()] links))
 )
 
 
