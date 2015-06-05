@@ -66,6 +66,22 @@
   (find-best-store cl)
 )
 
+;;get the set in the compisite map array
+(defn getSet
+  [cset]
+  ;;return only the set map in the cset composite map
+  (get-in cset [:set] ) 
+)
+
+;;get the all set in the subSetArray
+(defn getAllSet
+  [setArray]
+  ;;all the store map in the subSetArray
+  (map (fn [x] (get-in x [:set]) ) setArray)
+
+)
+
+
 (defn initSubSetArray
  []
 
@@ -74,14 +90,20 @@
  
     (def slots (assignProbability (get stores iter)))
     (doseq [x (range 3)]
-      (def subSet #{ {:store (get stores iter)} {:x 1 :y 2} }) ;TODO aggiungi il set
-      (println (select-keys subSet [:store]))
+      ;;costruzione del subset come insieme di mappe clienti e mappa store
+      ;;(def subSet #{ {:store (get stores iter)} {:x 1 :y 2} }) ;TODO aggiungi il set
+      (def subSet #{ (get stores iter)})
       (def subSet (createSubSet slots subSet))
+      ;;modifica del subset nella struttura
+      ;{: store nodo_magazzino :set insieme dei nodi del set compreso nodo maggazino}
+      (def subSet {:store (get stores iter) :set subSet})
       (def subSetArray (conj subSetArray subSet)))
         
   )
-
-  (def notAssigned (set/difference (set clients) (set/intersection  (set clients) (reduce set/union  subSetArray ))))
+  ;;(println (first subSetArray))
+  ;;la struttura è quella voluta
+  ;;definisco una function per utilizzare solo la mappa set(clienti+store nelle varie funzioni)
+  (def notAssigned (set/difference (set clients) (set/intersection  (set clients) (reduce set/union  (getAllSet subSetArray) ))))
   (if (not (empty? notAssigned))
     ()  
   )
@@ -125,6 +147,8 @@
   
 
    (initSubSetArray)
-   (def provam (into [] (first subSetArray)))
-   ;(MST provam)
+   ;;to test the changes
+   ;;we will find the MST of the first subSet
+   (MST (first subSetArray))
+   ;;funziona valutare se queste modifiche ci piacciono o meno
 )

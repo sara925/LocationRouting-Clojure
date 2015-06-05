@@ -48,13 +48,25 @@
       [uf tree]
       [(join uf a b) (cons link tree)])))
 
+(defn cSetToArray
+  [set]
+  ;;obtain the array of the set of clients and store nodes in
+  ;;the composite set set
+  (into [] (getSet set))
+)
+
 (defn MST
   [set]
-  
+  ;;the set parameter is in the composite form
+  ;;use cSetToArrat function in the definition of links and tree
+  ;;valutare se definire una nuova variabile o passsargli direttamente
+  ;;la struttura rifinita
+  ;;cSetToArray mi fornisce un Array utilizzabile da MST
   ;calcolo gli archi per costo crescente (costo= eucl.dist.)
-  (def links (linkArray set))
+  (println (getSet set))
+  (def links (linkArray (cSetToArray set)))
   (def links (sort-by (fn[[_ _ cost]] cost) links))
-  (def tree  (map (fn [x] (select-keys x [:x :y]) ) set))
+  (def tree  (map (fn [x] (select-keys x [:x :y]) ) (cSetToArray set)))
   (def tree  (make-union-find tree))
   
   ;MST: ritorno il costo dell'MST
