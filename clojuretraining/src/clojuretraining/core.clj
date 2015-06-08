@@ -66,12 +66,7 @@
   (find-best-store cl)
 )
 
-;;get the set in the compisite map array
-(defn getSet
-  [cset]
-  ;;return only the set map in the cset composite map
-  (get-in cset [:set] ) 
-)
+
 
 ;;get the all set in the subSetArray
 (defn getAllSet

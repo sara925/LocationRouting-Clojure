@@ -5,7 +5,8 @@
   [m1 m2]
   (def ret)
   (let [cost (computeCost m1 m2)]
-    (def ret [{:x (:x m1) :y (:y m1)} {:x (:x m2) :y (:y m2)} cost])
+    (def ret [{:x (:x m1) :y (:y m1) :capacity (:capacity m1) :id (:id m1)} 
+              {:x (:x m2) :y (:y m2) :capacity (:capacity m2) :id (:id m2)} cost])
     )
   ret)
 
@@ -48,6 +49,13 @@
       [uf tree]
       [(join uf a b) (cons link tree)])))
 
+;;get the set in the compisite map array
+(defn getSet
+  [cset]
+  ;;return only the set map in the cset composite map
+  (get-in cset [:set] ) 
+)
+
 (defn cSetToArray
   [set]
   ;;obtain the array of the set of clients and store nodes in
@@ -63,14 +71,21 @@
   ;;la struttura rifinita
   ;;cSetToArray mi fornisce un Array utilizzabile da MST
   ;calcolo gli archi per costo crescente (costo= eucl.dist.)
-  (println (getSet set))
   (def links (linkArray (cSetToArray set)))
   (def links (sort-by (fn[[_ _ cost]] cost) links))
-  (def tree  (map (fn [x] (select-keys x [:x :y]) ) (cSetToArray set)))
+  (def tree  (map (fn [x] (select-keys x [:x :y :capacity :id]) ) (cSetToArray set)))
   (def tree  (make-union-find tree))
   
   ;MST: ritorno il costo dell'MST
-  (reduce + (map (fn [[_ _ x]] x) (second (reduce add-link [tree '()] links))))
-)
+ 
+;  (println (first (reduce add-link [tree '()] links)))
+ ; (println (reduce add-link [tree '()] links))
+   (reduce + (map (fn [[_ _ x]] x) (second (reduce add-link [tree '()] links))))
 
+(def foglie 
+(map first (filter (fn [[_ y]] (= 1 y)) (reduce #(assoc %1 %2 (inc (%1 %2 0))) {} (mapcat (fn [[a b _]] [a b]) (second (reduce add-link [tree '()] links)))))))
+
+(println foglie)
+
+)
 
