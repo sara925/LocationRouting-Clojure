@@ -3,6 +3,7 @@
   (:require [clojure.java.io :as io])
   (:require [clojure.string :as str])
   (:require [clojure.set :as set])
+  (:require [clojure.data :as data])
   (:require [clojure.math.numeric-tower :as math])
 
   ;(:use [clojuretraining.instanceinit :as myinit])
@@ -60,31 +61,6 @@
   (second (apply min-key #(first %) (map #(vector (computeCost cl %) %) stores))))
 
 
-(defn assign-to-set
-  [cl]
-
-  (def prescelto (find-best-store cl))
-  (def pSet ((group-by :store subSetArray) prescelto))
-  (def pSet (get pSet (rand-int (count pSet))))
-  (def idx (.indexOf subSetArray pSet))
-
-  (let [foglie (MST-leaf pSet)]
-    (loop [iter 0]
-      (def foglia (get foglie (rand-int (count foglie))))
-      (def found  (contains? (reduce set/union (getAllSet (set/difference subSetArray pSet))) foglia))
-      (if found
-        (do
-          (into #{} (remove #(= foglia %) pSet))
-          ))
-
-
-      (if (and (< iter (- (count foglie) 1) (not found)))
-        (recur (inc iter))))
-  )
-)
-
-
-
 ;;get the all set in the subSetArray
 (defn getAllSet
   [setArray]
@@ -92,6 +68,39 @@
   (map (fn [x] (get-in x [:set]) ) setArray)
 
 )
+
+
+(defn assign-to-set
+  [cl]
+
+  (def prescelto (find-best-store cl))
+  (def pSet ((group-by :store subSetArray) prescelto))
+  (def pSet (get pSet (rand-int (count pSet))))
+  (def idx (.indexOf subSetArray pSet))
+   (let [foglie (MST-leaf pSet)]
+    (loop [iter 0]
+      (println "Clienti non assegnati")
+      (def foglia (nth foglie (rand-int (count foglie))))
+      (println foglia)
+     ; (def a (reduce set/union (set (getAllSet (remove #(= pSet %) subSetArray)))))
+    
+      (def found  (contains? (reduce set/union (set (getAllSet (remove #(= pSet %) subSetArray)))) foglia))
+      (println found)
+      (if found
+        (do
+          (def subSetArray (assoc-in subSetArray [idx :set] (into #{cl} (remove #(= foglia %) pSet)))) ;sostituisce cl a foglia
+          (println "cia")
+        ))
+
+
+      (if (and (< iter (- (count foglie) 1)) (not found))
+        (recur (inc iter))))
+  )
+)
+
+
+
+
 
 
 (defn initSubSetArray
@@ -138,7 +147,8 @@
   ;;apro il file e lo leggo una riga alla volta, lo passo poi al parser
   ;; per l'inizializzazione della struttura dati che conterrà tutti i nodi
   (read-benchmark-file "lu980.txt")
-  
+ 
+ 
   ;;instance initialization
   (instance-init)
   
