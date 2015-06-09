@@ -63,7 +63,26 @@
   (into [] (getSet set))
 )
 
-(defn MST
+(defn MST-leaf
+  [set]
+  ;;the set parameter is in the composite form
+  ;;use cSetToArrat function in the definition of links and tree
+  ;;valutare se definire una nuova variabile o passsargli direttamente
+  ;;la struttura rifinita
+  ;;cSetToArray mi fornisce un Array utilizzabile da MST
+  ;calcolo gli archi per costo crescente (costo= eucl.dist.)
+  (def links (linkArray (cSetToArray set)))
+  (def links (sort-by (fn[[_ _ cost]] cost) links))
+  (def tree  (map (fn [x] (select-keys x [:x :y :capacity :id]) ) (cSetToArray set)))
+  (def tree  (make-union-find tree))
+  
+  (def foglie  (map first (filter (fn [[_ y]] (= 1 y)) 
+                                  (reduce #(assoc %1 %2 (inc (%1 %2 0))) {} (mapcat (fn [[a b _]] [a b]) 
+                                                                                    (second (reduce add-link [tree '()] links)))))))
+  (remove #(= (:id %) (:id (get-in set [:store]))) foglie)
+)
+
+(defn MST-cost
   [set]
   ;;the set parameter is in the composite form
   ;;use cSetToArrat function in the definition of links and tree
@@ -77,15 +96,5 @@
   (def tree  (make-union-find tree))
   
   ;MST: ritorno il costo dell'MST
- 
-;  (println (first (reduce add-link [tree '()] links)))
- ; (println (reduce add-link [tree '()] links))
-   (reduce + (map (fn [[_ _ x]] x) (second (reduce add-link [tree '()] links))))
-
-(def foglie 
-(map first (filter (fn [[_ y]] (= 1 y)) (reduce #(assoc %1 %2 (inc (%1 %2 0))) {} (mapcat (fn [[a b _]] [a b]) (second (reduce add-link [tree '()] links)))))))
-
-(println foglie)
-
+  (reduce + (map (fn [[_ _ x]] x) (second (reduce add-link [tree '()] links))))
 )
-

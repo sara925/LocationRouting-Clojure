@@ -57,13 +57,30 @@
 (defn find-best-store
   [cl]
   ;trovo il magazzino a distanza minore da cl, ritorno costo e nodo magazzino in un array 
-  (apply min-key #(first %) (map #(vector (computeCost cl %) %) stores)))
+  (second (apply min-key #(first %) (map #(vector (computeCost cl %) %) stores))))
 
 
 (defn assign-to-set
-  [cl, set]
+  [cl]
 
-  (find-best-store cl)
+  (def prescelto (find-best-store cl))
+  (def pSet ((group-by :store subSetArray) prescelto))
+  (def pSet (get pSet (rand-int (count pSet))))
+  (def idx (.indexOf subSetArray pSet))
+
+  (let [foglie (MST-leaf pSet)]
+    (loop [iter 0]
+      (def foglia (get foglie (rand-int (count foglie))))
+      (def found  (contains? (reduce set/union (getAllSet (set/difference subSetArray pSet))) foglia))
+      (if found
+        (do
+          (into #{} (remove #(= foglia %) pSet))
+          ))
+
+
+      (if (and (< iter (- (count foglie) 1) (not found)))
+        (recur (inc iter))))
+  )
 )
 
 
@@ -100,7 +117,7 @@
   ;;definisco una function per utilizzare solo la mappa set(clienti+store nelle varie funzioni)
   (def notAssigned (set/difference (set clients) (set/intersection  (set clients) (reduce set/union  (getAllSet subSetArray) ))))
   (if (not (empty? notAssigned))
-    ()  
+    (doseq [cl notAssigned] (assign-to-set cl))  
   )
 
 )
@@ -144,6 +161,6 @@
    (initSubSetArray)
    ;;to test the changes
    ;;we will find the MST of the first subSet
-   (MST (first subSetArray))
+   
    ;;funziona valutare se queste modifiche ci piacciono o meno
 )
