@@ -172,10 +172,13 @@
         (def J (assoc J (.indexOf J (first (filter #(= (:store pi) (:store %)) J))) ret)))
       
       (def subSetArray (into [] (map (fn [x] (assoc x :set (set/difference (:set x) (:set pi)))) subSetArray)))
+      (def subSetArray (into [] (remove #(empty? (:set %)) subSetArray)))
  
       (println "rimasti "(count (reduce set/union (getAllSet subSetArray))))
       ) 
-                                        
+       
+
+                                 
     (if (not (empty? (reduce set/union (getAllSet subSetArray))))
       (recur (inc iter)))
     )
