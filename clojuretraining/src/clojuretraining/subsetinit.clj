@@ -18,15 +18,6 @@
   (math/sqrt (+ (ediff (:x map1) (:x map2)) (ediff (:y map1) (:y map2))))
 )
 
-(defn compSetCost
-  [s1]
-  (def array [])
-  ;;stimo il costo del ciclo hamiltoniano come la somma delle distanze dirette dal magazzino ai nodi associati
-  (let [storeNum (some #(if (number? %) %) s1 )]
-    (doseq [cl s1] (and (map? cl) (def array (conj array (computeCost  cl (get stores storeNum))))))
-    (+ (reduce + array) (:build (get stores storeNum)))
-  )
-)
 
 (defn unionCollection
   [aset]
@@ -49,9 +40,6 @@
       (def maxY Ymin)
       (def maxY Ymax))
 
-   ; (first (apply min-key second (map-indexed vector [1 2 4 0 5])))
-   ; (def maxX (max (math/abs (- Xs Xmin)) (math/abs (- Xs Xmax))))
-    ;(def maxY (max (math/abs (- Ys Ymin)) (math/abs (- Ys Ymax))))
     (math/sqrt (+ (ediff maxX Xs) (ediff maxY Ys)))
   )
 )

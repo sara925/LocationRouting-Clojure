@@ -97,4 +97,5 @@
   
   ;MST: ritorno il costo dell'MST
   (reduce + (map (fn [[_ _ x]] x) (second (reduce add-link [tree '()] links))))
+
 )
