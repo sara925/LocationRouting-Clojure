@@ -69,21 +69,22 @@
 
 )
 
-
 (defn assign-to-set
   [cl]
-
   (def prescelto (find-best-store cl))
   (def pSet ((group-by :store subSetArray) prescelto))
+  (println "count pSet"(count pSet))
   (def pSet (get pSet (rand-int (count pSet))))
+  (println "Sono arrivato qua")
   (def idx (.indexOf subSetArray pSet))
+  (println "Errore nell'indice?")
+  ;(println (cSetToArray pSet))
    (let [foglie (MST-leaf pSet)]
     (loop [iter 0]
       (println "Clienti non assegnati")
       (def foglia (nth foglie (rand-int (count foglie))))
       (println foglia)
-     ; (def a (reduce set/union (set (getAllSet (remove #(= pSet %) subSetArray)))))
-    
+     ; (def a (reduce set/union (set (getAllSet (remove #(= pSet %) subSetArray)))))    
       (def found  (contains? (reduce set/union (set (getAllSet (remove #(= pSet %) subSetArray)))) foglia))
       (println found)
       (if found
@@ -91,7 +92,6 @@
           (def subSetArray (assoc-in subSetArray [idx :set] (into #{cl} (remove #(= foglia %) pSet)))) ;sostituisce cl a foglia
           (println "cia")
         ))
-
 
       (if (and (< iter (- (count foglie) 1)) (not found))
         (recur (inc iter))))
@@ -125,6 +125,7 @@
   ;;la struttura è quella voluta
   ;;definisco una function per utilizzare solo la mappa set(clienti+store nelle varie funzioni)
   (def notAssigned (set/difference (set clients) (set/intersection  (set clients) (reduce set/union  (getAllSet subSetArray) ))))
+  (println "non assegnati " (count notAssigned))
   (if (not (empty? notAssigned))
     (doseq [cl notAssigned] (assign-to-set cl))  
   )

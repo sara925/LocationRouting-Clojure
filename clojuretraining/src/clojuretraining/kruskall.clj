@@ -13,13 +13,13 @@
 
 (defn linkArray
   [set]
-  (def linkArray [])
+  (def linka [])
   ;;il set deve contenere anche il magazzino
   (doseq [x set]
     (doseq [y (subvec set (+  1 (.indexOf set x)))]
-      (def linkArray (conj linkArray (linkCosts x y))))
+      (def linka (conj linka (linkCosts x y))))
   )
-  linkArray)
+  linka)
 
 (defn make-union-find [nodes]
   (apply hash-map (mapcat (fn[x][x [x [x]]]) nodes)))
