@@ -169,13 +169,14 @@
           ret (checkOcc pi J)]
       (if (false? ret)
         (def J (conj J pi))
-        (def J (assoc J (.indexOf J (first (filter #(= (:store pi) (:store %)) J))) ret))
-        ;(def J (assoc J #()  ret))
-        )
+        (def J (assoc J (.indexOf J (first (filter #(= (:store pi) (:store %)) J))) ret)))
       
+      (def subSetArray (into [] (map (fn [x] (assoc x :set (set/difference (:set x) (:set pi)))) subSetArray)))
+ 
+      (println "rimasti "(count (reduce set/union (getAllSet subSetArray))))
       ) 
                                         
-    (if (< iter 0)
+    (if (not (empty? (reduce set/union (getAllSet subSetArray))))
       (recur (inc iter)))
     )
   
