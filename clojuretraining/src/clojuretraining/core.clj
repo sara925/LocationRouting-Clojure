@@ -130,17 +130,54 @@
   )
 )
 
+(defn mergeP
+ [pi Jel]
+ (assoc pi :set (set/union (getSet pi) (getSet Jel)))
+ )
+
+(defn checkOcc
+  [pi J]
+  (def return false)
+  (doseq [Jel J]
+    (if (= (:store pi) (:store Jel))
+      (def return (mergeP pi Jel))  
+      ))
+  return
+)
+
+
+
+(defn rIdx
+ [pi J]
+ (.indexOf (:store pi) (into [] (map #(select-keys % [:store]) J)))
+ )
+
 (defn constrGreedySol
   []
 
   (initSubSetArray)
-  
-  ;;calcolo pesi
-  (doseq [idx (range (count subSetArray))]
-   (def subSetArray (assoc-in subSetArray [idx :cost] (compSetCost (get subSetArray idx)))))
-  
-  (def subSetArray (sort-by :cost subSetArray))
-  (def beta (* 1.3 (:cost (first subSetArray))))
+  (def J [])
+  (loop [iter 0]
+    ;;calcolo pesi
+    (doseq [idx (range (count subSetArray))]
+      (def subSetArray (assoc-in subSetArray [idx :cost] (compSetCost (get subSetArray idx)))))
+    
+    (def subSetArray (sort-by :cost subSetArray))
+    (def beta (* 1.3 (:cost (first subSetArray))))
+    (let [P (filter #(< (:cost %) beta) subSetArray)
+          pi (nth P (rand-int (count P)))
+          ret (checkOcc pi J)]
+      (if (false? ret)
+        (def J (conj J pi))
+        (def J (assoc J (.indexOf J (first (filter #(= (:store pi) (:store %)) J))) ret))
+        ;(def J (assoc J #()  ret))
+        )
+      
+      ) 
+                                        
+    (if (< iter 0)
+      (recur (inc iter)))
+    )
   
 )
 
