@@ -60,12 +60,23 @@
   ;trovo il magazzino a distanza minore da cl, ritorno costo e nodo magazzino in un array 
   (second (apply min-key #(first %) (map #(vector (computeCost cl %) %) coll))))
 
+(defn find-best-stores
+  [cl,coll]
+  ;trovo i magazzini a distanza minore da cl, ritorno costo e nodo magazzino in un array 
+  (into [] (map second (sort-by first (map #(vector (computeCost cl %) %) coll)))))
 
 ;;get the all set in the subSetArray
 (defn getAllSet
   [setArray]
   ;;all the store map in the subSetArray
   (map (fn [x] (get-in x [:set]) ) setArray)
+
+)
+
+(defn getAllStore
+  [setArray]
+  ;;all the store map in the subSetArray
+  (map (fn [x] (get-in x [:store]) ) setArray)
 
 )
 
@@ -170,6 +181,32 @@
           ))))
   J)
 
+
+(defn fixCapacity
+  [Jin]
+  (def J Jin)
+  (doseq [i (range (count J))]
+    (if (> (calcDemand (get J i)) storeCapacity)
+      (do
+        (def foglie (MST-leaf (get J i)) )
+        (loop [toRemove (- (calcDemand (get J i)) storeCapacity)]
+          (def foglia (nth foglie (rand-int (count foglie))))
+          
+          (def s (find-best-stores foglia (into [] (remove nil? (into [] (map (fn [x] (if (< (+ (calcDemand x) (:capacity foglia)) storeCapacity) x)) J ))))))
+    
+          (def idx (.indexOf J (first (filter #(= (:store %) s) J))))
+          ;;rimozione della foglia
+          (def J (assoc-in J [i :set] (set/difference (:set (get J i)) #{foglia})))
+          ;;aggiunta in quello 
+          (def J (assoc-in J [idx :set] (set/union (:set (get J idx)) #{foglia})))
+          (if (> toRemove 0)
+            (recur (- toRemove (:capacity foglia)))))
+      )
+    )
+  )
+J
+)
+
 (defn constrGreedySol
   []
 
@@ -201,13 +238,13 @@
       (recur (inc iter)))
     )
 
-  ;"rifinisco" J
- (def J (into [] (remove #(empty? (:set %))  J)))
- (def J (remove-duplicates J))
- (def J (into [] (remove #(empty? (:set %))  J)))
- (println (map calcDemand J))
+                                        ;"rifinisco" J
+  (def J (into [] (remove #(empty? (:set %))  J)))
+  (def J (remove-duplicates J))
+  (def J (into [] (remove #(empty? (:set %))  J)))
+  (println (map calcDemand J))
 
- J)
+  J)
 
 
 ;;------------------ MAIN -----------
