@@ -56,9 +56,9 @@
 )
 
 (defn find-best-store
-  [cl]
+  [cl,coll]
   ;trovo il magazzino a distanza minore da cl, ritorno costo e nodo magazzino in un array 
-  (second (apply min-key #(first %) (map #(vector (computeCost cl %) %) stores))))
+  (second (apply min-key #(first %) (map #(vector (computeCost cl %) %) coll))))
 
 
 ;;get the all set in the subSetArray
@@ -71,7 +71,7 @@
 
 (defn assign-to-set
   [cl]
-  (def prescelto (find-best-store cl))
+  (def prescelto (find-best-store cl stores))
   (def pSet ((group-by :store subSetArray) prescelto))
   (def pSet (get pSet (rand-int (count pSet))))
   (def idx (.indexOf subSetArray pSet))
@@ -113,14 +113,14 @@
     (doseq [x (range 3)]
       ;;costruzione del subset come insieme di mappe clienti e mappa store
       ;;(def subSet #{ {:store (get stores iter)} {:x 1 :y 2} }) ;TODO aggiungi il set
-      (def subSet #{ (get stores iter)})
+      (def subSet #{})
       (def subSet (createSubSet slots subSet))
       ;;modifica del subset nella struttura
       ;{: store nodo_magazzino :set insieme dei nodi del set compreso nodo maggazino}
       (def subSet {:store (get stores iter) :set subSet})
-      (def subSetArray (conj subSetArray subSet)))
-        
+      (def subSetArray (conj subSetArray subSet)))    
   )
+  (def subSetArray (into [] (map #(assoc  %1 :id %2)  subSetArray (range (count subSetArray)))))
   ;;la struttura è quella voluta
   ;;definisco una function per utilizzare solo la mappa set(clienti+store nelle varie funzioni)
   (def notAssigned (set/difference (set clients) (set/intersection  (set clients) (reduce set/union  (getAllSet subSetArray) ))))
@@ -130,10 +130,15 @@
   )
 )
 
+(defn calcDemand
+  [set]
+  (let [s (:set set)] (reduce + (map #(:capacity %) s))))
+
 (defn mergeP
  [pi Jel]
  (assoc pi :set (set/union (getSet pi) (getSet Jel)))
- )
+
+)
 
 (defn checkOcc
   [pi J]
@@ -152,38 +157,57 @@
  (.indexOf (:store pi) (into [] (map #(select-keys % [:store]) J)))
  )
 
+(defn remove-duplicates
+  [Jin]
+  (def J Jin)
+  (doseq [cl clients]
+    (let [presence (into [] (remove #(nil? %) (map (fn [x] (if (contains? (:set x) cl) x)) J)))]
+      (if (> (count presence) 1)
+        (do 
+          (def tmp (into [] (remove #(= (:store %) (find-best-store cl (into [] (map :store presence)))) presence)))
+          (doseq [p tmp]
+            (def J (assoc-in J [(.indexOf J p) :set] (set/difference (:set p) #{cl}))))
+          ))))
+  J)
+
 (defn constrGreedySol
   []
 
   (initSubSetArray)
+  (def subSetTmp subSetArray)
+
   (def J [])
   (loop [iter 0]
     ;;calcolo pesi
-    (doseq [idx (range (count subSetArray))]
-      (def subSetArray (assoc-in subSetArray [idx :cost] (compSetCost (get subSetArray idx)))))
-    
-    (def subSetArray (sort-by :cost subSetArray))
-    (def beta (* 1.3 (:cost (first subSetArray))))
-    (let [P (filter #(< (:cost %) beta) subSetArray)
+    (doseq [idx (range (count subSetTmp))]
+      (def subSetTmp (assoc-in subSetTmp [idx :cost] (compSetCost (get subSetTmp idx)))))
+
+    (def subSetTmp (sort-by :cost subSetTmp))
+    (def beta (* 1.3 (:cost (first subSetTmp))))
+    (let [P (filter #(< (:cost %) beta) subSetTmp)
           pi (nth P (rand-int (count P)))
           ret (checkOcc pi J)]
       (if (false? ret)
-        (def J (conj J pi))
+        (def J (conj J (get subSetArray (.indexOf subSetArray (first (filter #(= (:id pi) (:id %)) subSetArray))))))
         (def J (assoc J (.indexOf J (first (filter #(= (:store pi) (:store %)) J))) ret)))
       
-      (def subSetArray (into [] (map (fn [x] (assoc x :set (set/difference (:set x) (:set pi)))) subSetArray)))
-      (def subSetArray (into [] (remove #(empty? (:set %)) subSetArray)))
- 
-      (println "rimasti "(count (reduce set/union (getAllSet subSetArray))))
+      (def subSetTmp (into [] (map (fn [x] (assoc x :set (set/difference (:set x) (:set pi)))) subSetTmp)))
+      (def subSetTmp (into [] (remove #(empty? (:set %)) subSetTmp)))
+      
+      (println "Rimasti "(count (reduce set/union (getAllSet subSetTmp))))
       ) 
-       
-
-                                 
-    (if (not (empty? (reduce set/union (getAllSet subSetArray))))
+    
+    (if (not (empty? (reduce set/union (getAllSet subSetTmp))))
       (recur (inc iter)))
     )
-  
-)
+
+  ;"rifinisco" J
+ (def J (into [] (remove #(empty? (:set %))  J)))
+ (def J (remove-duplicates J))
+ (def J (into [] (remove #(empty? (:set %))  J)))
+ (println (map calcDemand J))
+
+ J)
 
 
 ;;------------------ MAIN -----------
@@ -222,7 +246,8 @@
   (println "Numero magazzini tot: "numPossMag)
   
 
-   (constrGreedySol)
+  (def cover (constrGreedySol))
+  
    ;;to test the changes
    ;;we will find the MST of the first subSet
    
