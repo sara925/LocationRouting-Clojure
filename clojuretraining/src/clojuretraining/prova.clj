@@ -76,9 +76,10 @@
 (reduce + (map (fn[[_ _ x]] x) (second (reduce add-link [city-uf '()] links)))) ;-> 351
 (reduce + (map (fn[[_ _ x]] x) (second (reduce add-link [city-uf '()] (reverse links))))) ;-> 988
 
-;(println (first (reduce add-link [city-uf '()] links)))
+(println (second (reduce add-link [city-uf '()] links)))
 
 
-(println  (reduce #(assoc %1 %2 (inc (%1 %2 0))) {} (mapcat (fn [[a b _]] [a b]) (second (reduce add-link [city-uf '()] links)))))
+;(println  (reduce #(assoc %1 %2 (inc (%1 %2 0))) {} (mapcat (fn [[a b _]] [a b]) (second (reduce add-link [city-uf '()] links)))))
+
 ;(println  (map first (filter (fn [[_ y]] (= 1 y)) (reduce #(assoc %1 %2 (inc (%1 %2 0))) {} (mapcat (fn [[a b _]] [a b]) (second (reduce add-link [city-uf '()] links)))))))
                                         ;le foglie sono i nodi che occorrono solo una volta nel secondo termine risultante dalla reduce

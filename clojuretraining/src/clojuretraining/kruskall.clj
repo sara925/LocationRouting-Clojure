@@ -97,5 +97,21 @@
   
   ;MST: ritorno il costo dell'MST
   (reduce + (map (fn [[_ _ x]] x) (second (reduce add-link [tree '()] links))))
+)
 
+(defn MST
+  [set]
+  ;;the set parameter is in the composite form
+  ;;use cSetToArrat function in the definition of links and tree
+  ;;valutare se definire una nuova variabile o passsargli direttamente
+  ;;la struttura rifinita
+  ;;cSetToArray mi fornisce un Array utilizzabile da MST
+  ;calcolo gli archi per costo crescente (costo= eucl.dist.)
+  (def links (linkArray set))
+  (def links (sort-by (fn[[_ _ cost]] cost) links))
+  (def tree  (map (fn [x] (select-keys x [:x :y :capacity :id]) ) (cSetToArray set)))
+  (def tree  (make-union-find tree))
+  
+  ;MST: ritorno l'MST come lista di [nodoA nodoB costo]
+   (second (reduce add-link [tree '()] links))
 )

@@ -13,6 +13,7 @@
 (load "instanceinit")
 (load "subsetinit")
 (load "kruskall")
+(load "two-opt")
  
 ;;---general purpose data structures--
 (def nodeMaps [])   ;array of maps, each map represents a node read from a TSP benchmark
@@ -191,21 +192,21 @@
         (loop [toRemove (- (calcDemand (get J i)) storeCapacity)]
           (def foglia (nth foglie (rand-int (count foglie))))
           
-          (def s (find-best-stores foglia (getAllStore (into [] (remove nil? (into [] (map (fn [x] (if (< (+ (calcDemand x) (:capacity foglia)) storeCapacity) x)) J )))))))
+          (def s 
+            (find-best-stores 
+               foglia 
+               (getAllStore (into [] (remove nil? (into [] 
+                                   (map (fn [x] (if (< (+ (calcDemand x) (:capacity foglia)) storeCapacity) x)) J )))))))
     
           (def idx (.indexOf J (first (filter #(= (:store %) (first s)) J))))
-          (println idx)
           ;;rimozione della foglia
           (def J (assoc-in J [i :set] (set/difference (:set (get J i)) #{foglia})))
           ;;aggiunta in quello 
           (def J (assoc-in J [idx :set] (set/union (:set (get J idx)) #{foglia})))
           (if (> toRemove 0)
             (recur (- toRemove (:capacity foglia)))))
-      )
-    )
-  )
-J
-)
+      )))
+  J)
 
 (defn constrGreedySol
   []
@@ -238,10 +239,11 @@ J
       (recur (inc iter)))
     )
 
-                                        ;"rifinisco" J
+  ;"rifinisco" J
   (def J (into [] (remove #(empty? (:set %))  J)))
   (def J (remove-duplicates J))
   (def J (into [] (remove #(empty? (:set %))  J)))
+  (def J (fixCapacity J))
   (println (map calcDemand J))
 
   J)
@@ -270,9 +272,10 @@ J
   ;;GRASP procedure loop
   (loop [iter 1]
     ;;construction of a greedy solution as a starting point
-    
-
+    (def cover (constrGreedySol))
     ;;local search proceduere
+    (two-opt cover)
+   
     ;;...TODO..
 
     (if (< iter 1)
@@ -283,7 +286,7 @@ J
   (println "Numero magazzini tot: "numPossMag)
   
 
-  (def cover (constrGreedySol))
+ 
   
    ;;to test the changes
    ;;we will find the MST of the first subSet
