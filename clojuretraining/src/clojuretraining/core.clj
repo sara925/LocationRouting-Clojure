@@ -63,7 +63,7 @@
 (defn find-best-stores
   [cl,coll]
   ;trovo i magazzini a distanza minore da cl, ritorno costo e nodo magazzino in un array 
-  (into [] (map second (sort-by first (map #(vector (computeCost cl %) %) coll)))))
+  (into [] (map second (sort-by first (into [] (map #(vector (computeCost cl %) %)  coll))))))
 
 ;;get the all set in the subSetArray
 (defn getAllSet
@@ -116,7 +116,6 @@
 
 (defn initSubSetArray
  []
-
   (find-border-customers)
   (doseq [iter (range (count stores))] 
  
@@ -192,9 +191,10 @@
         (loop [toRemove (- (calcDemand (get J i)) storeCapacity)]
           (def foglia (nth foglie (rand-int (count foglie))))
           
-          (def s (find-best-stores foglia (into [] (remove nil? (into [] (map (fn [x] (if (< (+ (calcDemand x) (:capacity foglia)) storeCapacity) x)) J ))))))
+          (def s (find-best-stores foglia (getAllStore (into [] (remove nil? (into [] (map (fn [x] (if (< (+ (calcDemand x) (:capacity foglia)) storeCapacity) x)) J )))))))
     
-          (def idx (.indexOf J (first (filter #(= (:store %) s) J))))
+          (def idx (.indexOf J (first (filter #(= (:store %) (first s)) J))))
+          (println idx)
           ;;rimozione della foglia
           (def J (assoc-in J [i :set] (set/difference (:set (get J i)) #{foglia})))
           ;;aggiunta in quello 
