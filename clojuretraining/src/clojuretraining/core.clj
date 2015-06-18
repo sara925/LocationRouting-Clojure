@@ -28,7 +28,6 @@
 
 (def borders {:xmin 0 :xmax 0 :ymin 0 :ymax 0})
 (def slotsProbability (reductions + [50 30 15 5]))  ;probabilità delle varie fasce
-
 ;;----------------------------------------------
 
 (defn createSubSet 
@@ -269,12 +268,18 @@
   ;;instance initialization
   (instance-init)
   
+
+  (println "Massima capacità: "storeCapacity " Massima domanda: "maxDemand)
+  (println "Numero magazzini tot: "numPossMag)
+
   ;;GRASP procedure loop
   (loop [iter 1]
     ;;construction of a greedy solution as a starting point
     (def cover (constrGreedySol))
     ;;local search proceduere
-    (two-opt cover)
+   ;
+
+    ;(two-opt cover)
    
     ;;...TODO..
 
@@ -282,8 +287,7 @@
       (recur (inc iter)))
     )
 
-  (println "Massima capacità: "storeCapacity " Massima domanda: "maxDemand)
-  (println "Numero magazzini tot: "numPossMag)
+  
   
 
  

@@ -107,7 +107,7 @@
   ;;la struttura rifinita
   ;;cSetToArray mi fornisce un Array utilizzabile da MST
   ;calcolo gli archi per costo crescente (costo= eucl.dist.)
-  (def links (linkArray set))
+  (def links (linkArray (cSetToArray set)))
   (def links (sort-by (fn[[_ _ cost]] cost) links))
   (def tree  (map (fn [x] (select-keys x [:x :y :capacity :id]) ) (cSetToArray set)))
   (def tree  (make-union-find tree))
