@@ -185,24 +185,24 @@ ret)
    (def c (conj cycle (linkCosts node (first rest))))
    (if (> (count rt) 1)
      (make-hc rt c)
-     (do (def se (into '() (map first (filter (fn [[_ y]] (= y 1)) 
+     (do 
+       (def se (into '() (map first (filter (fn [[_ y]] (= y 1)) 
                                               (reduce #(assoc %1 %2 (inc (%1 %2 0))) {} 
                                                       (mapcat (fn [[a b _]] [a b]) c))))))
          (println "se" se)
-         (conj c (linkCosts (first se) (second se)))))
+         (conj c (linkCosts (first se) (second se))))))
      
 
 
-   (defn take-shortcut
-     [eulin]
-     (def eul eulin)
-     ;;shortcut procedure
-     (def visisted #{})
-     ;;node list
-     (def nl (into '() (distinct (mapcat (fn [[a b _]] [a b] ) eul))))
-     (def hc (make-hc nl '()))
-     hc
-     ))
+(defn take-shortcut
+  [eulin]
+  (def eul eulin)
+  ;;shortcut procedure
+  (def visisted #{})
+  ;;node list
+  (def nl (into '() (distinct (mapcat (fn [[a b _]] [a b] ) eul))))
+  (def hc (make-hc nl '()))
+  hc)
 
 (defn christofides
   [s]
@@ -230,5 +230,5 @@ ret)
   ;;da qui in poi lavoro sul set singolo
   (def setProva (first cover))
   
-  (christofides setProva)
+  (def hamCycle (christofides setProva))
 )
