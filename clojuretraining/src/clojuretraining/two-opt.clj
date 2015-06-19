@@ -45,34 +45,67 @@
 
 (defn dfs-count
  [node graph]
- (def start node)
+ (def s node)
  (def frontiera #{})
  (def esplorati #{})
  (def rimfront #{})
  (loop [iter 0]
-   (def vicini (find-neighboors start graph))
+   (def vicini (find-neighboors s graph))
    (def esplorati (set/union (set vicini) esplorati))
    (def frontiera (set/union frontiera 
-                             (into #{} (map (fn [[a b _]] (if (= start a) b a)) vicini))))
-   (def frontiera (set/difference frontiera #{start}))
-   (def rimfront (set/union rimfront #{start}))
+                             (into #{} (map (fn [[a b _]] (if (= s a) b a)) vicini))))
+   (def frontiera (set/difference frontiera #{s}))
+   (def rimfront (set/union rimfront #{s}))
    (def frontiera (set/difference frontiera rimfront))
-   (def start (first frontiera))
+   (def s (first frontiera))
    (if (not (empty? frontiera))
     (recur (inc iter))))
 (count esplorati))
+
+(defn dfs
+  [graph node]
+  (def nn node)
+  (def gr graph)
+   (loop [vertices [] explored #{nn} frontier [nn]]
+    (if (empty? frontier)
+      vertices
+      (let [v (first frontier)
+            neigb (gr v)]
+        (recur
+         (conj vertices v)
+         (into explored neigb)
+         (into (pop frontier) (remove explored neigb)))
+        ))
+    )
+)
+
+
+(defn creaGrafo
+  [gr,node]
+  (def nn node)
+  (def nodi (distinct (mapcat (fn [[a b _]] [a b]) gr)))
+  (def G {})
+  (doseq [n nodi]
+    (def G (conj G [n (into [] (remove nil? (map (fn [[a b _]] 
+                                                   (if (= a n) b a)) 
+                                                 (find-neighboors n gr))))])))
+  
+  (count (distinct (dfs G node)))
+)
+
+
 
 
 
 (defn not-bridge?
   [start,graph,r]
-  ;;if 
-  (def ss start)
-  (if (> (dfs-count ss graph)
-         (dfs-count ss (into '() (remove #(= r %) graph))))
-    false
-    true)
-
+  (def ret )
+  (if (> (creaGrafo graph start)
+         (creaGrafo (into '() (remove #(= r %) graph)) start) )
+    (def ret false)
+    (def ret  true))
+(println   (creaGrafo graph start)   (creaGrafo (into '() (remove #(= r %) graph)) start) ret)
+ret
 )
 
 
@@ -80,31 +113,36 @@
   [gr]
   (def p gr)
   (def f '())
-  (def toRem)
-  (def start (first (first p)))
+  (def toRem [])
+  (def start (first (first p))) ;arbitrary starting point
   (loop [idx 0]
     (println start)
     (def neigh (find-neighboors start p))
     (if (= (count neigh) 1)
       (do
-        (println "count 1")
         (def toRem (first neigh))
         (def p (into '() (remove #(= % toRem) p )))
-        (def f (conj f (first neigh))))
+        (def f (conj f toRem))))
+    (if (> (count neigh) 1) 
       (do
-        (print "count > 1")
-        (def toRem (some #(when (not-bridge? start p %) %) (find-neighboors start p)))
-        (println "toRem" toRem)
-        (println (count p))
+        (println "count >1 " (count neigh))
+        (def toRem (some #(when (not-bridge? start p %) %)
+                         (find-neighboors start p)))
+        
         (def f (conj f toRem))
-        (println start)
-        (def p (into '() (remove #(= % toRem) p)))))
-        (def start (first (first p)))
-        ;(println (first toRem) (second toRem))
-    (if (not (empty? p))
-      (recur (inc idx))))
-  ;;calcolato ciclo euleriano
-  f
+        (def p (into '() (remove #(= % toRem) p)))
+        ))
+ 
+    ;(println toRem)
+    (if (= start (first toRem))
+      (def start (second toRem))
+      (def start (first toRem)))
+   (println (count p))
+   (if (and (< idx 200) (not (empty? p)))
+     (recur (inc idx))))
+  
+  ;f
+  '()
 )
 
  (defn take-shortcut
