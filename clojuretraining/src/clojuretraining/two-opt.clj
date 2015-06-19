@@ -11,11 +11,12 @@
 
 (defn add-store-to-set
   [s]
-  
+  (def cover #{})
   (doseq [idx (range (count s))]
     (def cover 
-      (assoc-in cover [idx :set] 
-                (set/union (:set s) #{(:store s)})))))
+      (assoc-in s [idx :set] 
+                (set/union (:set (get s idx)) #{(:store (get s idx))}))))
+  cover)
 
 
 (defn find-best-matching
@@ -155,7 +156,6 @@ ret)
   (def toRem [])
   (def start (first (first p))) ;arbitrary starting point
   (loop [idx 0]
-    (println start)
     (def neigh (find-neighboors start p))
     (if (= (count neigh) 1)
       (do
@@ -164,11 +164,9 @@ ret)
         (def f (conj f toRem))))
     (if (> (count neigh) 1) 
       (do
-        (println "count >1 " (count neigh))
         (def toRem (some #(when (not-bridge? start p %) %)
                          (find-neighboors start p)))
         (def f (conj f toRem))
-        (println "to rem " toRem)
         (def p (into '() (remove-first toRem p)))
         ))
  
@@ -176,20 +174,35 @@ ret)
       (def start (second toRem))
       (def start (first toRem)))
 
-   (println (count p))
-   (if (and (< idx 200) (not (empty? p)))
+   (if  (not (empty? p))
      (recur (inc idx))))
   
-  ;f
-  '()
-)
+  f)
 
- (defn take-shortcut
-   [eulin]
-   (def eul eulin)
-   ;;nodi del cammino che hanno r >2
-   (map (fn [x] find-neighboors x eul) (mapcat (fn [[a b _]] [a b]) eul) )
-   )
+ (defn make-hc
+   [[node & rest] cycle]
+   (def rt rest)
+   (def c (conj cycle (linkCosts node (first rest))))
+   (if (> (count rt) 1)
+     (make-hc rt c)
+     (do (def se (into '() (map first (filter (fn [[_ y]] (= y 1)) 
+                                              (reduce #(assoc %1 %2 (inc (%1 %2 0))) {} 
+                                                      (mapcat (fn [[a b _]] [a b]) c))))))
+         (println "se" se)
+         (conj c (linkCosts (first se) (second se)))))
+     
+
+
+   (defn take-shortcut
+     [eulin]
+     (def eul eulin)
+     ;;shortcut procedure
+     (def visisted #{})
+     ;;node list
+     (def nl (into '() (distinct (mapcat (fn [[a b _]] [a b] ) eul))))
+     (def hc (make-hc nl '()))
+     hc
+     ))
 
 (defn christofides
   [s]
@@ -203,8 +216,7 @@ ret)
     (def mst (conj mst a)))
 
   (def eul (fleury mst))
-  '()
-  ;(take-shortcut eul)
+  (take-shortcut eul)
 )
 
 (defn prova
@@ -219,5 +231,4 @@ ret)
   (def setProva (first cover))
   
   (christofides setProva)
-
 )
