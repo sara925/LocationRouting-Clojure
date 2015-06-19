@@ -16,6 +16,12 @@
             (def nodeMaps (conj nodeMaps (zipmap [:id :x :y :capacity] [(first nodeVal) (second nodeVal) (last nodeVal) 0]))))
        ))
    ))
+ (def tmp #{})
+ (println "Nodi nodeMaps prima della rimozione " (count nodeMaps))
+ (doseq [a nodeMaps b nodeMaps] (if  (and (= (:x a) (:x b)) (= (:y a) (:y b)) (not= (:id a) (:id b))) (def tmp (set/union  tmp #{a b}))))
+ ;;only non-duplicate node
+ (def nodeMaps (into [] (set/difference (set nodeMaps) tmp)))
+  (println "Nodi nodeMaps non duplicati " (count nodeMaps))
 )
 
 

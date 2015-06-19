@@ -79,8 +79,25 @@
     )
 )
 
+(defn bfs
+  [g s]
+  (def nn s)
+  (def gr g)
+  ((fn rec-bfs [explored frontier]
+     (lazy-seq
+      (if (empty? frontier)
+        nil
+        (let [v (first frontier)
+              neighbors (gr v)]
+          (cons v (rec-bfs
+                   (into explored neighbors)
+                   (into (pop frontier) (remove explored neighbors))))))))
+   #{nn} (conj (clojure.lang.PersistentQueue/EMPTY) nn))
 
-(defn creaGrafo
+
+)
+
+(defn creaGrafo-bfs
   [gr,node]
   (def nn node)
   (def nodi (distinct (mapcat (fn [[a b _]] [a b]) gr)))
@@ -89,24 +106,46 @@
     (def G (conj G [n (into [] (remove nil? (map (fn [[a b _]] 
                                                    (if (= a n) b a)) 
                                                  (find-neighboors n gr))))])))
-  
+  (count (distinct (bfs G node)))
+)
+
+(defn creaGrafo-dfs
+  [gr,node]
+  (def nn node)
+  (def nodi (distinct (mapcat (fn [[a b _]] [a b]) gr)))
+  (def G {})
+  (doseq [n nodi]
+    (def G (conj G [n (into [] (remove nil? (map (fn [[a b _]] 
+                                                   (if (= a n) b a)) 
+                                                 (find-neighboors n gr))))])))
   (count (distinct (dfs G node)))
 )
 
-
-
-
+(defn remove-first
+  [syb lst]
+  (let [[before after]
+          (loop [b [] a lst]
+            (if (empty? lst) 
+              [b a]
+              (if (= syb (first a))
+                [b (rest a)]
+                (recur (cons (first a) b) (rest a)))))]
+   (concat (reverse before) after)))
 
 (defn not-bridge?
   [start,graph,r]
   (def ret )
-  (if (> (creaGrafo graph start)
-         (creaGrafo (into '() (remove #(= r %) graph)) start) )
+  (def gb graph)
+  (def sb start)
+  (def rb r)
+  (if (> (creaGrafo-bfs gb sb)
+         (creaGrafo-bfs (remove-first rb gb) sb) )
     (def ret false)
     (def ret  true))
-(println   (creaGrafo graph start)   (creaGrafo (into '() (remove #(= r %) graph)) start) ret)
-ret
-)
+;(println   (creaGrafo-bfs gb sb)   (creaGrafo-bfs (remove-first rb gb) sb) ret)
+;(println   (creaGrafo-dfs gb sb)   (creaGrafo-dfs (remove-first rb gb) sb) ret)
+
+ret)
 
 
 (defn fleury
@@ -121,22 +160,22 @@ ret
     (if (= (count neigh) 1)
       (do
         (def toRem (first neigh))
-        (def p (into '() (remove #(= % toRem) p )))
+        (def p (into '() (remove-first toRem  p )))
         (def f (conj f toRem))))
     (if (> (count neigh) 1) 
       (do
         (println "count >1 " (count neigh))
         (def toRem (some #(when (not-bridge? start p %) %)
                          (find-neighboors start p)))
-        
         (def f (conj f toRem))
-        (def p (into '() (remove #(= % toRem) p)))
+        (println "to rem " toRem)
+        (def p (into '() (remove-first toRem p)))
         ))
  
-    ;(println toRem)
     (if (= start (first toRem))
       (def start (second toRem))
       (def start (first toRem)))
+
    (println (count p))
    (if (and (< idx 200) (not (empty? p)))
      (recur (inc idx))))
@@ -159,14 +198,10 @@ ret
   (def odd (map first (filter (fn [[_ y]] (odd? y)) 
                        (reduce #(assoc %1 %2 (inc (%1 %2 0))) {} 
                                (mapcat (fn [[a b _]] [a b]) mst))))) ;nodi del set di grado dispari nell'MST
- 
   (def odd (perfect-matching odd '())); archi del perfect-matching su odd
   (doseq [a odd]
     (def mst (conj mst a)))
 
-  ;;(def mst (conj (into [] mst) (into [] odd))) ;aggiungo all'mst gli archi del matching, 
-  ;(def mst (into '() mst))
-  ;(println "vai fleury")
   (def eul (fleury mst))
   '()
   ;(take-shortcut eul)
