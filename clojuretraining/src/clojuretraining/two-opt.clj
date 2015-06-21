@@ -190,7 +190,6 @@ ret)
        (def se (into '() (map first (filter (fn [[_ y]] (= y 1)) 
                                               (reduce #(assoc %1 %2 (inc (%1 %2 0))) {} 
                                                       (mapcat (fn [[a b _]] [a b]) c))))))
-         (println "se" se)
          (conj c (linkCosts (first se) (second se))))))
      
 
@@ -220,6 +219,46 @@ ret)
   (take-shortcut eul)
 )
 
+(defn twoSwap
+  [i1, i2, c]
+
+   (def nl (into [] (distinct (mapcat (fn [[a b _]] [a b] ) c))))
+   (let [x (subvec nl 0 i1) y (subvec nl i1 i2 ) z (subvec nl i2)]
+     (into [] (make-hc  (into '() (concat x (reverse y) z)) '()))))
+
+
+(defn twoOpt
+  [cycle]
+  
+  (def opt cycle)
+ 
+  (loop [idx 0]
+    (def i)
+    (def j)
+    (def minchange 0)
+
+    (loop [idx1 0]
+      (loop [idx2 (+ 1 idx1)]
+        (let [tmpTour (twoSwap idx1 idx2 opt) tmpCost (tour-cost tmpTour) 
+              optCost (tour-cost opt) minC (- optCost tmpCost)]
+          (if (< minchange minC)
+            (do
+              (def minchange (- optCost tmpCost))
+              (def i idx1)
+              (def j idx2)
+              )))
+
+        (if (< idx2 (- (count opt) 1))
+          (recur (inc idx2))))
+      (if (< idx1 (- (count opt) 2)) 
+        (recur (inc idx1))))
+
+    (if (> minchange 0) 
+      (do
+        (def opt (twoSwap i j opt))
+        (recur (inc idx)))))
+  opt)
+
 (defn prova
   [J]
   
@@ -230,4 +269,6 @@ ret)
   (def setProva (first cover))
   
   (def hamCycle (christofides setProva))
+
+  (def bestOpt (twoOpt (into [] hamCycle)))
 )
