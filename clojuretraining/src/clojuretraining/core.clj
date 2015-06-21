@@ -14,6 +14,7 @@
 (load "subsetinit")
 (load "kruskall")
 (load "two-opt")
+(load "pgraph")
  
 ;;---general purpose data structures--
 (def nodeMaps [])   ;array of maps, each map represents a node read from a TSP benchmark

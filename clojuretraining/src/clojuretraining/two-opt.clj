@@ -11,11 +11,12 @@
 
 (defn add-store-to-set
   [s]
-  (def cover #{})
-  (doseq [idx (range (count s))]
-    (def cover 
-      (assoc-in s [idx :set] 
-                (set/union (:set (get s idx)) #{(:store (get s idx))}))))
+  (def cover s)
+  (doseq [idx (range (count cover))]
+    (def cover
+      (assoc-in cover [idx :set] 
+                (set/union (:set (get cover idx)) #{(:store (get cover idx))})))
+     )
   cover)
 
 
@@ -224,9 +225,7 @@ ret)
   
   (def cover J)
   (def cover (add-store-to-set cover))
-
   ;mi serve un ciclo da cui partire
-  
   ;;da qui in poi lavoro sul set singolo
   (def setProva (first cover))
   
