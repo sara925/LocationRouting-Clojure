@@ -271,3 +271,13 @@ ret)
     (def hamCycle (christofides sub))
     (def result (conj result {:store (:store sub) :tour (twoOpt (into [] hamCycle))})))
   result)
+
+
+(defn k-swap
+  [cin]
+  
+  (def cswap  cin)
+  
+
+
+)

@@ -269,35 +269,60 @@
 
   ;;apro il file e lo leggo una riga alla volta, lo passo poi al parser
   ;; per l'inizializzazione della struttura dati che conterrà tutti i nodi
-  (read-benchmark-file "lu980.txt")
- 
- 
-  ;;instance initialization
-  (instance-init)
-  
+  (read-benchmark-file "lu980.txt") 
 
   (println "Massima capacità: "storeCapacity " Massima domanda: "maxDemand)
   (println "Numero magazzini tot: "numPossMag)
 
   (def optimum)
   (def optimumCost Double/MAX_VALUE)
-  ;;GRASP procedure loop
-  (loop [iter 1]
-    
-    (def cover '())
-    (def cover (constrGreedySol))
-    (def candidate (local-search cover))
-    (def candidateCost (evaluate candidate))
-    (println candidateCost "<? " optimumCost)
-    (if (< candidateCost optimumCost)
-      (do
-        (def optimum candidate)
-        (def optimumCost candidateCost)))
-    
-  
-    ;;...TODO..
+  (def improved false)
+  (def ngrasp 0)
+  (def nswap 0)
+  (def nstore 0)
 
-    (if (< iter 5)
-      (recur (inc iter)))
-    )   
+
+  (loop [idx0 1]
+
+    (instance-init)
+
+    (def improved false)
+    (def ngrasp 0)
+    (def nswap  0)
+
+    ;;GRASP procedure loop
+    (loop [idx1 1]
+
+      (def cover '())
+      (if (= ngrasp 5)
+        (do
+          (def cover (k-swap opt))
+          (def ngrasp 0)
+          (def nswap (inc nswap)))
+        (def cover (constrGreedySol)))
+
+      
+      (def candidate (local-search cover))
+      (def candidateCost (evaluate candidate))
+
+      (println idx1 ": " candidateCost "<? " optimumCost)
+
+      (if (< candidateCost optimumCost)
+        (do
+          (def improved true)
+          (def ngrasp 0)
+          (def nswap 0)
+          (def optimum candidate)
+          (def optimumCost candidateCost))
+        (do 
+          (def improved false)
+          (def deadlockInt (inc deadlockInt))))
+      
+      (if (< deadlockExt 1)
+        (recur (inc idx1))))
+
+
+
+    (if ()
+      (recur (inc idx0))))   
 )
