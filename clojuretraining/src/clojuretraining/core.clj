@@ -248,6 +248,12 @@
 
   J)
 
+(defn evaluate
+  [in]
+   (+ (reduce + (map #(tour-cost (:tour %)) in)) 
+      (reduce + (map #(get-in % [:store :build]) in)))
+)
+
 
 ;;------------------ MAIN -----------
 (defn -main
@@ -273,28 +279,25 @@
   (println "Massima capacità: "storeCapacity " Massima domanda: "maxDemand)
   (println "Numero magazzini tot: "numPossMag)
 
+  (def optimum)
+  (def optimumCost Double/MAX_VALUE)
   ;;GRASP procedure loop
   (loop [iter 1]
-    ;;construction of a greedy solution as a starting point
+    
+    (def cover '())
     (def cover (constrGreedySol))
-    ;;local search proceduere
-   ;
-
-    ;(two-opt cover)
-   
+    (def candidate (local-search cover))
+    (def candidateCost (evaluate candidate))
+    (println candidateCost "<? " optimumCost)
+    (if (< candidateCost optimumCost)
+      (do
+        (def optimum candidate)
+        (def optimumCost candidateCost)))
+    
+  
     ;;...TODO..
 
-    (if (< iter 1)
+    (if (< iter 5)
       (recur (inc iter)))
-    )
-
-  
-  
-
- 
-  
-   ;;to test the changes
-   ;;we will find the MST of the first subSet
-   
-   ;;funziona valutare se queste modifiche ci piacciono o meno
+    )   
 )

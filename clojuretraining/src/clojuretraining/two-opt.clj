@@ -259,16 +259,15 @@ ret)
         (recur (inc idx)))))
   opt)
 
-(defn prova
+(defn local-search
   [J]
   
   (def cover J)
   (def cover (add-store-to-set cover))
-  ;mi serve un ciclo da cui partire
-  ;;da qui in poi lavoro sul set singolo
-  (def setProva (first cover))
-  
-  (def hamCycle (christofides setProva))
-
-  (def bestOpt (twoOpt (into [] hamCycle)))
-)
+ 
+  (def result '())
+  (doseq [sub cover]
+    (println "store: " (:store sub))
+    (def hamCycle (christofides sub))
+    (def result (conj result {:store (:store sub) :tour (twoOpt (into [] hamCycle))})))
+  result)
