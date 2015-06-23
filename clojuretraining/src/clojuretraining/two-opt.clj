@@ -275,14 +275,17 @@ ret)
 
 (defn find-worst-client
  [set,store]
- (subvec (map second (into [] (sort-by first > (into [] (map #(vector (computeCost store %) %)  set))))) 0 5)
-)
+ (subvec (into [] (map second 
+                       (into [] (sort-by first > 
+                                         (into [] (map #(vector (computeCost store %) %) set)))))) 
+         0 5))
 
 (defn perfect-match-swap
-  [ll sh]
+  [ll, sh]
   (def nll ll)
   (def sc (set sh))
   (def match [])
+
   (loop [idx 0]
     (let [ret (find-best-matching  (first (get nll idx)) sc)]
       (def match (conj match [(get nll idx) [(first (get nll idx)) (second ret)]]))
@@ -295,37 +298,40 @@ ret)
 
 
 (defn sum-gain
-[in]
+  [in]
  (def gain)
  (def cold (reduce + (map #(computeCost (first (first %) ) (second (first %))) in)))
  (def cnew (reduce + (map #(computeCost (first (second %) ) (second (second %))) in)))
-(- cold cnew)
-)
+ (- cold cnew))
 
 
 (defn find-best-swap
   [wa]
-(def storeHouse (getAllStore wa))
-(def m [])
-(def match-opt [])
-(def b 0)
+  (def storeHouse (getAllStore wa))
+  (def m [])
+  (def match-opt [])
+  (def b 0)
+
  (doseq [idx (range 5)]
-   (def r (perfect-match-swap (into [] (map #([(get (:leaf %) idx) (:store %)]) wa)) storeHouse))
+   (def r (perfect-match-swap (into [] (map (fn [x] [(get (:leafs x) idx) (:store x)]) wa)) storeHouse))
    (if (> (sum-gain r) b)
      (do
        (def b (sum-gain r))
-       (def match-opt r)))
-   )
-match-opt)
+       (def match-opt r))))
+ match-opt)
 
 (defn k-swap
   [cin]
   ;;do the matching with cover node
   (def cswap  [])
+  (doseq [c cin] (println (count (distinct (mapcat (fn [[a b _]] [a b]) (:tour c))))))
+  
+
   (doseq [c cin]
     (def cswap (conj cswap {:store (:store c) :set (set/difference 
-(into #{} (distinct (mapcat (fn [[a b _]] [a b]) (:tour c)))) (:store c))})))
-
+                                                    (into #{} (distinct (mapcat (fn [[a b _]] [a b]) (:tour c)))) 
+                                                    #{(select-keys (:store c) [:id :x :y :capacity])})})))
+  (println (map #(count (:set %)) cswap))
 
   (def worst [])
   (doseq [c cswap]
@@ -333,12 +339,14 @@ match-opt)
   )
   (let [kc (find-best-swap worst)]
     (doseq [scambio kc]
-      (def idxr (.indexOf cswap (filter #(= (:store %) (second (first scambio))) ) cswap))
-      (def idxa (.indexOf cswap (filter #(= (:store %) (second (second scambio))) ) cswap))
+      (def idxr (.indexOf cswap (first (filter #(= (:store %) (second (first scambio)))  cswap))))
+      (def idxa (.indexOf cswap (first (filter #(= (:store %) (second (second scambio)))  cswap))))
      ;;delete
+      
       (def cswap (assoc-in cswap [idxr :set] (set/difference (:set (get cswap idxr)) #{(first (first scambio))})))
+
       ;;aggiungo
-        (def cswap (assoc-in cswap [idxa :set] (set/union (:set (get cswap idxa)) #{(first (second scambio))})))
+      (def cswap (assoc-in cswap [idxa :set] (set/union (:set (get cswap idxa)) #{(first (second scambio))})))
 
       )
     )

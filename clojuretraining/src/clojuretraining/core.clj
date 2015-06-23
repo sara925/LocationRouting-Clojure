@@ -13,7 +13,6 @@
 (load "instanceinit")
 (load "subsetinit")
 (load "kruskall")
-(load "two-opt")
 (load "pgraph")
  
 ;;---general purpose data structures--
@@ -30,6 +29,13 @@
 (def borders {:xmin 0 :xmax 0 :ymin 0 :ymax 0})
 (def slotsProbability (reductions + [50 30 15 5]))  ;probabilità delle varie fasce
 ;;----------------------------------------------
+
+(defn getAllStore
+  [setArray]
+  ;;all the store map in the subSetArray
+  (map (fn [x] (get-in x [:store]) ) setArray))
+
+(load "two-opt")
 
 (defn createSubSet 
  [slots, subSet]
@@ -71,13 +77,6 @@
   [setArray]
   ;;all the store map in the subSetArray
   (map (fn [x] (get-in x [:set]) ) setArray)
-
-)
-
-(defn getAllStore
-  [setArray]
-  ;;all the store map in the subSetArray
-  (map (fn [x] (get-in x [:store]) ) setArray)
 
 )
 
@@ -272,9 +271,6 @@
   ;; per l'inizializzazione della struttura dati che conterrà tutti i nodi
   (read-benchmark-file "lu980.txt") 
 
-  (println "Massima capacità: "storeCapacity " Massima domanda: "maxDemand)
-  (println "Numero magazzini tot: "numPossMag)
-
   (def optimum)
   (def optimumCost Double/MAX_VALUE)
   (def improved false)
@@ -284,8 +280,9 @@
 
 
   (loop [idx0 1]
-    (println "instance init")
     (instance-init)
+    (println "Massima capacità: "storeCapacity " Massima domanda: "maxDemand)
+    (println "Numero magazzini tot: "numPossMag)
 
     (def improved false)
     (def ngrasp 0)
@@ -295,10 +292,11 @@
     (loop [idx1 1]
 
       (def cover '())
-      (if (= ngrasp 1)
+      (if (or (= ngrasp 5) (> nswap 0))
         (do
           (println "do swap")
           (def cover (k-swap optimum))
+          (println (map calcDemand cover))
           (def ngrasp 0)
           (def nswap (inc nswap)))
         (def cover (constrGreedySol)))
@@ -313,20 +311,20 @@
         (do
           (def improved true)
           (def ngrasp 0)
-          (def nswap 0)
-          (def nstore 0)
           (def optimum candidate)
           (def optimumCost candidateCost))
         (do 
           (def improved false)
-          (def ngrasp (inc ngrasp))))
+          (def ngrasp (inc ngrasp))
+          (if (> nswap 0) (def nswap (inc nswap)) )))
       
-      (if (< nswap 1)
+      (if (< nswap 6)
         (recur (inc idx1))))
 
+    
 
-
-    (if (< nstore 1)
-      (do (def nstore (inc nstore))
+    (if (< nstore 2)
+      (do 
+        (def nstore (inc nstore))
         (recur  (inc idx0)))))   
 )
