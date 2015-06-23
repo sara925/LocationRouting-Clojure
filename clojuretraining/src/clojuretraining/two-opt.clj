@@ -324,14 +324,11 @@ ret)
   [cin]
   ;;do the matching with cover node
   (def cswap  [])
-  (doseq [c cin] (println (count (distinct (mapcat (fn [[a b _]] [a b]) (:tour c))))))
-  
-
   (doseq [c cin]
     (def cswap (conj cswap {:store (:store c) :set (set/difference 
                                                     (into #{} (distinct (mapcat (fn [[a b _]] [a b]) (:tour c)))) 
                                                     #{(select-keys (:store c) [:id :x :y :capacity])})})))
-  (println (map #(count (:set %)) cswap))
+ 
 
   (def worst [])
   (doseq [c cswap]

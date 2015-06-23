@@ -232,7 +232,7 @@
       (def subSetTmp (into [] (map (fn [x] (assoc x :set (set/difference (:set x) (:set pi)))) subSetTmp)))
       (def subSetTmp (into [] (remove #(empty? (:set %)) subSetTmp)))
       
-      (println "Rimasti "(count (reduce set/union (getAllSet subSetTmp))))
+      ;(println "Rimasti "(count (reduce set/union (getAllSet subSetTmp))))
       ) 
     
     (if (not (empty? (reduce set/union (getAllSet subSetTmp))))
@@ -278,53 +278,66 @@
   (def nswap 0)
   (def nstore 0)
 
+  (instance-init)
+  (println "Massima capacità: "storeCapacity " Massima domanda: "maxDemand)
+  (println "Numero magazzini tot: "numPossMag)
 
   (loop [idx0 1]
-    (instance-init)
-    (println "Massima capacità: "storeCapacity " Massima domanda: "maxDemand)
-    (println "Numero magazzini tot: "numPossMag)
+   
+    (if (= nswap 5)
+      (do
+        (println "STORE SWAP")
+        (instance-init)))
 
-    (def improved false)
-    (def ngrasp 0)
-    (def nswap  0)
 
-    ;;GRASP procedure loop
-    (loop [idx1 1]
+    (if (and (= ngrasp 5) (< nswap 5))
+      (do
+        (println "SWAP ")
+        (def cover (k-swap optimum))))
 
-      (def cover '())
-      (if (or (= ngrasp 5) (> nswap 0))
-        (do
-          (println "do swap")
-          (def cover (k-swap optimum))
-          (println (map calcDemand cover))
-          (def ngrasp 0)
-          (def nswap (inc nswap)))
-        (def cover (constrGreedySol)))
+    (if (< ngrasp 5)
+      (do
+        (println "CONSTR GREEDY SOL ")
+        (def cover (constrGreedySol))))
 
-      
-      (def candidate (local-search cover))
-      (def candidateCost (evaluate candidate))
+    (println "Nstore " nstore "Nswap " nswap "Ngrasp " ngrasp)
+    (def candidate (local-search cover))
+    (def candidateCost (evaluate candidate))
+    (print candidateCost " ?< " optimumCost)
+    (if (< candidateCost optimumCost)
+      (do
+        (def improved true)
+        (def optimum candidate)
+        (def optimumCost candidateCost))
+      (def improved false))
+    (println  " : " improved)
 
-      (println idx1 ": " candidateCost "<? " optimumCost)
+    (if (< ngrasp 5)
+      (if improved 
+        (def ngrasp 0)
+        (def ngrasp (inc ngrasp))))
 
-      (if (< candidateCost optimumCost)
-        (do
-          (def improved true)
-          (def ngrasp 0)
-          (def optimum candidate)
-          (def optimumCost candidateCost))
-        (do 
-          (def improved false)
-          (def ngrasp (inc ngrasp))
-          (if (> nswap 0) (def nswap (inc nswap)) )))
-      
-      (if (< nswap 6)
-        (recur (inc idx1))))
-
+     (if (= ngrasp 5)
+      (if improved 
+        (def nswap 0)
+        (def nswap (inc nswap))))
     
+      (if (= nswap 5)
+      (if improved 
+        (def nstore 0)
+        (def nstore (inc nstore))))
+
+
+      (println "\n\n")
 
     (if (< nstore 2)
-      (do 
-        (def nstore (inc nstore))
-        (recur  (inc idx0)))))   
+      (recur (inc nstore))))
+
+
+
+
+
+
+
 )
+
