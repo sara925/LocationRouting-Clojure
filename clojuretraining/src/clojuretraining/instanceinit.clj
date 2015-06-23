@@ -60,6 +60,7 @@
 	"Seleziona da nodeMaps i nodi che saranno possibili location di magazzini"
 	[]
   (def stores [])
+  (def numPossMag 0)
   (def numPossMag (+ (rand-int 20)   
                      (quot (* (count nodeMaps) maxDemand) storeCapacity))) 
 
