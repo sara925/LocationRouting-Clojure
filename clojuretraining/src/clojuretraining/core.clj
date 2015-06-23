@@ -117,9 +117,10 @@
 
 (defn initSubSetArray
  []
+  (def subSetArray [])
   (find-border-customers)
   (doseq [iter (range (count stores))] 
- 
+    
     (def slots (assignProbability (get stores iter)))
     (doseq [x (range 3)]
       ;;costruzione del subset come insieme di mappe clienti e mappa store
@@ -283,7 +284,7 @@
 
 
   (loop [idx0 1]
-
+    (println "instance init")
     (instance-init)
 
     (def improved false)
@@ -294,9 +295,10 @@
     (loop [idx1 1]
 
       (def cover '())
-      (if (= ngrasp 5)
+      (if (= ngrasp 1)
         (do
-          (def cover (k-swap opt))
+          (println "do swap")
+          (def cover (k-swap optimum))
           (def ngrasp 0)
           (def nswap (inc nswap)))
         (def cover (constrGreedySol)))
@@ -312,17 +314,19 @@
           (def improved true)
           (def ngrasp 0)
           (def nswap 0)
+          (def nstore 0)
           (def optimum candidate)
           (def optimumCost candidateCost))
         (do 
           (def improved false)
-          (def deadlockInt (inc deadlockInt))))
+          (def ngrasp (inc ngrasp))))
       
-      (if (< deadlockExt 1)
+      (if (< nswap 1)
         (recur (inc idx1))))
 
 
 
-    (if ()
-      (recur (inc idx0))))   
+    (if (< nstore 1)
+      (do (def nstore (inc nstore))
+        (recur  (inc idx0)))))   
 )

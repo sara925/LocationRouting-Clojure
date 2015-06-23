@@ -48,7 +48,7 @@
   [store]
   
   (def r (/ (find-radius store) 4))
-
+  
   (def slots [[] [] [] []])
   (def sumSlotDist [r (* 2 r) (* 3 r) (* 4 r)])
   

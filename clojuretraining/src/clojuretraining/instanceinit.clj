@@ -8,7 +8,6 @@
 
  (with-open [rdr (io/reader (str "./resources/" fileName))]
    (let [lines (line-seq rdr)]
-
      (doseq [line lines] 
        (let [nodeVal (map read-string (take 3 (str/split  line #"\s")))] 
          (if (number? (first nodeVal))
@@ -60,7 +59,7 @@
 (defn create-store-locations
 	"Seleziona da nodeMaps i nodi che saranno possibili location di magazzini"
 	[]
-
+  (def stores [])
   (def numPossMag (+ (rand-int 20)   
                      (quot (* (count nodeMaps) maxDemand) storeCapacity))) 
 
@@ -97,9 +96,10 @@
 (defn instance-init
 	"Inizializza l'istanza"
 	[]
-	
+        (doseq [n (range (count nodeMaps))]
+         (def nodeMaps  (assoc-in nodeMaps [n :capacity] 0) ))
+        
 	(create-store-locations )
-	
 	(create-customers-array)
 
 	(def stores (vec (map #(assoc % :build (+ 10000 (rand 10000))) stores))) 

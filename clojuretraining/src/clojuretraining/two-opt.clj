@@ -264,20 +264,87 @@ ret)
   
   (def cover J)
   (def cover (add-store-to-set cover))
- 
   (def result '())
   (doseq [sub cover]
-    (println "store: " (:store sub))
+    ;(println "store: " (:store sub))
     (def hamCycle (christofides sub))
     (def result (conj result {:store (:store sub) :tour (twoOpt (into [] hamCycle))})))
   result)
 
 
+
+(defn find-worst-client
+ [set,store]
+ (subvec (map second (into [] (sort-by first > (into [] (map #(vector (computeCost store %) %)  set))))) 0 5)
+)
+
+(defn perfect-match-swap
+  [ll sh]
+  (def nll ll)
+  (def sc (set sh))
+  (def match [])
+  (loop [idx 0]
+    (let [ret (find-best-matching  (first (get nll idx)) sc)]
+      (def match (conj match [(get nll idx) [(first (get nll idx)) (second ret)]]))
+      (def sc (set/difference sc #{(second ret)}))
+      )
+      
+    (if (< idx (- (count nll) 1))
+      (recur (inc idx))))
+  match)
+
+
+(defn sum-gain
+[in]
+ (def gain)
+ (def cold (reduce + (map #(computeCost (first (first %) ) (second (first %))) in)))
+ (def cnew (reduce + (map #(computeCost (first (second %) ) (second (second %))) in)))
+(- cold cnew)
+)
+
+
+(defn find-best-swap
+  [wa]
+(def storeHouse (getAllStore wa))
+(def m [])
+(def match-opt [])
+(def b 0)
+ (doseq [idx (range 5)]
+   (def r (perfect-match-swap (into [] (map #([(get (:leaf %) idx) (:store %)]) wa)) storeHouse))
+   (if (> (sum-gain r) b)
+     (do
+       (def b (sum-gain r))
+       (def match-opt r)))
+   )
+match-opt)
+
 (defn k-swap
   [cin]
-  
-  (def cswap  cin)
-  
+  ;;do the matching with cover node
+  (def cswap  [])
+  (doseq [c cin]
+    (def cswap (conj cswap {:store (:store c) :set (set/difference 
+(into #{} (distinct (mapcat (fn [[a b _]] [a b]) (:tour c)))) (:store c))})))
 
 
+  (def worst [])
+  (doseq [c cswap]
+    (def worst (conj worst {:leafs (find-worst-client (:set c) (:store c)) :store (:store c)}))
+  )
+  (let [kc (find-best-swap worst)]
+    (doseq [scambio kc]
+      (def idxr (.indexOf cswap (filter #(= (:store %) (second (first scambio))) ) cswap))
+      (def idxa (.indexOf cswap (filter #(= (:store %) (second (second scambio))) ) cswap))
+     ;;delete
+      (def cswap (assoc-in cswap [idxr :set] (set/difference (:set (get cswap idxr)) #{(first (first scambio))})))
+      ;;aggiungo
+        (def cswap (assoc-in cswap [idxa :set] (set/union (:set (get cswap idxa)) #{(first (second scambio))})))
+
+      )
+    )
+  ;;ho una struttura cover
+  ;;matching leaf and stores
+  ;;evaluate the gain from swap
+  
+  cswap
 )
