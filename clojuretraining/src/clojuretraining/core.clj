@@ -40,7 +40,8 @@
 (defn createSubSet 
  [slots, subSet]
  
- (def tmp subSet) (def freeSpace storeCapacity)
+ (def tmp subSet) 
+ (def freeSpace storeCapacity)
  (def slotsCum (createCumulativeSlots slots));lista di liste cumulative
 
  (loop [iter 0]
