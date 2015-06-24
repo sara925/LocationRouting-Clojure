@@ -31,11 +31,6 @@
 (def slotsProbability (reductions + [50 30 15 5]))  ;probabilità delle varie fasce
 ;;----------------------------------------------
 
-
-
-
-
-
 (defn find-best-store
   [cl,coll]
   ;trovo il magazzino a distanza minore da cl, ritorno costo e nodo magazzino in un array 
@@ -50,9 +45,7 @@
 (defn getAllSet
   [setArray]
   ;;all the store map in the subSetArray
-  (map (fn [x] (get-in x [:set]) ) setArray)
-
-)
+  (map (fn [x] (get-in x [:set]) ) setArray))
 
 
 (defn compCoverRatio
@@ -108,8 +101,6 @@
             (def J (assoc-in J [(.indexOf J p) :set] (set/difference (:set p) #{cl}))))
           ))))
   J)
-
-
 
 (defn evaluate
   [in]
