@@ -293,7 +293,12 @@
     (if (= nswap 1)
       (do
         (println "\t\t*****STORE SWAP******")
-        (def cover (swap-store optimum))))
+        (def cover (swap-store optimum))
+        (loop []
+          (def cover (fixCapacity cover))
+          (if (some #(> % storeCapacity) (map calcDemand cover))
+            (recur)))
+        ))
 
 
     (if (and (= ngrasp 10) (< nswap 1))

@@ -345,7 +345,7 @@ ret)
       (def cswap (assoc-in cswap [idxa :set] (set/union (:set (get cswap idxa)) #{(first (second scambio))})))
     ))
   
-  (fixCapacity cswap))
+   cswap)
 
 (defn find-best-replace
   [sin, coll]
