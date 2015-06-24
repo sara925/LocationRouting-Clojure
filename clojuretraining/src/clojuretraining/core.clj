@@ -244,7 +244,12 @@
   (def J (into [] (remove #(empty? (:set %))  J)))
   (def J (remove-duplicates J))
   (def J (into [] (remove #(empty? (:set %))  J)))
-  (def J (fixCapacity J))
+ 
+  (loop [] 
+    (def J (fixCapacity J))
+    (if (some #(> % storeCapacity) (map calcDemand J))
+      (recur)))
+
   (println (map calcDemand J))
 
   J)
@@ -285,18 +290,19 @@
 
   (loop [idx0 1]
    
-    (if (= nswap 5)
+    (if (= nswap 1)
       (do
-        (println "STORE SWAP")
-        (instance-init)))
+        (println "\t\t*****STORE SWAP******")
+        (def cover (swap-store optimum))))
 
 
-    (if (and (= ngrasp 5) (< nswap 5))
+    (if (and (= ngrasp 10) (< nswap 1))
       (do
         (println "SWAP ")
-        (def cover (k-swap optimum))))
+        (def cover (k-swap optimum))
+        (println (map calcDemand cover))))
 
-    (if (< ngrasp 5)
+    (if (< ngrasp 10)
       (do
         (println "CONSTR GREEDY SOL ")
         (def cover (constrGreedySol))))
@@ -313,32 +319,28 @@
       (def improved false))
     (println  " : " improved)
 
-    (if (< ngrasp 5)
+    (if (= nswap 1)
       (if improved 
-        (def ngrasp 0)
-        (def ngrasp (inc ngrasp))))
+        (do
+          (def nstore 0)
+          (def nswap 0))
+        (def nstore (inc nstore))))
 
-     (if (= ngrasp 5)
+    (if (and (= ngrasp 10) (< nswap 1))
       (if improved 
         (def nswap 0)
         (def nswap (inc nswap))))
     
-      (if (= nswap 5)
-      (if improved 
-        (def nstore 0)
-        (def nstore (inc nstore))))
+      (if (< ngrasp 10)
+        (if improved 
+          (def ngrasp 0)
+          (def ngrasp (inc ngrasp))))
 
 
       (println "\n\n")
 
-    (if (< nstore 2)
+    (if (< nstore 1)
       (recur (inc nstore))))
-
-
-
-
-
-
 
 )
 

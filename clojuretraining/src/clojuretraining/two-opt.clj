@@ -322,34 +322,72 @@ ret)
 
 (defn k-swap
   [cin]
-  ;;do the matching with cover node
+  
   (def cswap  [])
   (doseq [c cin]
     (def cswap (conj cswap {:store (:store c) :set (set/difference 
                                                     (into #{} (distinct (mapcat (fn [[a b _]] [a b]) (:tour c)))) 
                                                     #{(select-keys (:store c) [:id :x :y :capacity])})})))
  
-
   (def worst [])
   (doseq [c cswap]
-    (def worst (conj worst {:leafs (find-worst-client (:set c) (:store c)) :store (:store c)}))
-  )
+    (def worst (conj worst {:leafs (find-worst-client (:set c) (:store c)) :store (:store c)})))
+
   (let [kc (find-best-swap worst)]
     (doseq [scambio kc]
       (def idxr (.indexOf cswap (first (filter #(= (:store %) (second (first scambio)))  cswap))))
       (def idxa (.indexOf cswap (first (filter #(= (:store %) (second (second scambio)))  cswap))))
-     ;;delete
-      
+     
+      ;;delete
       (def cswap (assoc-in cswap [idxr :set] (set/difference (:set (get cswap idxr)) #{(first (first scambio))})))
 
       ;;aggiungo
       (def cswap (assoc-in cswap [idxa :set] (set/union (:set (get cswap idxa)) #{(first (second scambio))})))
-
-      )
-    )
-  ;;ho una struttura cover
-  ;;matching leaf and stores
-  ;;evaluate the gain from swap
+    ))
   
-  cswap
-)
+  (fixCapacity cswap))
+
+(defn find-best-replace
+  [sin, coll]
+
+  (def opt 0)
+  (def change {})
+  (doseq [c coll]
+    (let [ oldStore (MST-cost (assoc-in sin [:set] (set/union (:set sin) #{(:store sin)})))
+           newStore (MST-cost (assoc-in sin [:set] (set/union (:set sin) #{c})))]
+      (if (> (- oldStore newStore) opt)
+        (do 
+          (def change {:old (:store sin) :new c :impr (- oldStore newStore)})
+          (def opt (- oldStore newStore))))))
+  
+  change)
+
+
+
+(defn swap-store 
+  [cin]
+
+  (def cswap  [])
+  (doseq [c cin]
+    (def cswap (conj cswap {:store (:store c) :set (set/difference 
+                                                    (into #{} (distinct (mapcat (fn [[a b _]] [a b]) (:tour c)))) 
+                                                    #{(select-keys (:store c) [:id :x :y :capacity])})}))) 
+ 
+  (loop []
+
+    (def arr [])
+    (loop [idx 0]
+      (let [closed (set/difference (into #{} stores) (into #{} (getAllStore cswap)))]
+        (def arr (conj arr (find-best-replace (get cswap idx) closed))))
+      (if (< idx (- (count cswap) 1))
+        (recur (inc idx))))
+
+    (if (some #(not (empty? %)) arr)
+      (do
+        (def arr (into [] (remove empty? arr)))
+        (let [ch (first (sort-by :impr > arr))
+                idxOld (.indexOf cswap (first (filter #(= (:store %) (:old ch)) cswap)))]        
+            (def cswap (assoc-in cswap [idxOld :store] (:new ch))))
+          
+         (recur))))
+  cswap)
