@@ -44,6 +44,31 @@
 		))
 )
 
+;;funzione per la lettura dei parametri della grasp
+
+(defn read-grasp-param
+	"Legge il  file di parametri GRASP e inizializza le apposite strutture"
+	[fileName]
+
+	(with-open [rdr (io/reader (str "./resources/" fileName))]
+ 		(let [lines (line-seq rdr)]
+
+			(doseq [line lines]
+				(let [lineSplit (take 2 (str/split line #":"))]
+					;;parsing different cases
+					(if (= (str/trim(first lineSplit)) (str/trim "NGRASP"))
+					  (def maxgrasp (read-string (second lineSplit))))
+
+					(if (= (str/trim(first lineSplit)) (str/trim "NSWAP"))
+					  (def maxswap (read-string (second lineSplit))))
+					  
+					 	(if (= (str/trim(first lineSplit)) (str/trim "NSTORE"))
+					  (def maxnstore (read-string (second lineSplit))))
+				))
+		))
+)
+
+
 
 
 ;;inizializza i magazzini

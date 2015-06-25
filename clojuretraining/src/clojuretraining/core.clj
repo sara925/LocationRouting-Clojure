@@ -273,6 +273,8 @@
     ;;read values from input file
 	(read-param-file (str "./resources/"(first args))))
 
+  ;;read the grasp parameter file
+  (read-grasp-param "grasp-parameters.txt")
   ;;apro il file e lo leggo una riga alla volta, lo passo poi al parser
   ;; per l'inizializzazione della struttura dati che conterrà tutti i nodi
   (read-benchmark-file "lu980.txt") 
@@ -283,31 +285,32 @@
   (def ngrasp 0)
   (def nswap 0)
   (def nstore 0)
-
+  ;;maxswap maxgrasp maxnstore are the maximum iterations
+  ;;for each fallimentar procedure
   (instance-init)
   (println "Massima capacità: "storeCapacity " Massima domanda: "maxDemand)
   (println "Numero magazzini tot: "numPossMag)
 
   (loop [idx0 1]
    
-    (if (= nswap 1)
+    (if (= nswap maxswap)
       (do
         (println "\t\t*****STORE SWAP******")
         (def cover (swap-store optimum))
-        (loop []
-          (def cover (fixCapacity cover))
-          (if (some #(> % storeCapacity) (map calcDemand cover))
-            (recur)))
+        (println (map calcDemand cover))  
         ))
 
 
-    (if (and (= ngrasp 10) (< nswap 1))
+    (if (and (= ngrasp maxgrasp) (< nswap maxswap))
       (do
         (println "SWAP ")
-        (def cover (k-swap optimum))
+        (loop []
+          (def cover (k-swap optimum))
+           (if (some #(> % storeCapacity) (map calcDemand cover))
+            (recur)))
         (println (map calcDemand cover))))
 
-    (if (< ngrasp 10)
+    (if (< ngrasp maxgrasp)
       (do
         (println "CONSTR GREEDY SOL ")
         (def cover (constrGreedySol))))
@@ -324,19 +327,19 @@
       (def improved false))
     (println  " : " improved)
 
-    (if (= nswap 1)
+    (if (= nswap maxswap)
       (if improved 
         (do
           (def nstore 0)
           (def nswap 0))
         (def nstore (inc nstore))))
 
-    (if (and (= ngrasp 10) (< nswap 1))
+    (if (and (= ngrasp maxgrasp) (< nswap maxswap))
       (if improved 
         (def nswap 0)
         (def nswap (inc nswap))))
     
-      (if (< ngrasp 10)
+      (if (< ngrasp maxgrasp)
         (if improved 
           (def ngrasp 0)
           (def ngrasp (inc ngrasp))))
@@ -344,7 +347,7 @@
 
       (println "\n\n")
 
-    (if (< nstore 1)
+    (if (< nstore maxnstore)
       (recur (inc nstore))))
 
 )

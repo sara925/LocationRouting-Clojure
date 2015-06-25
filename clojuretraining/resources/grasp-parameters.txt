@@ -1,0 +1,3 @@
+NGRASP : 10
+NSWAP : 1
+NSTORE : 1
