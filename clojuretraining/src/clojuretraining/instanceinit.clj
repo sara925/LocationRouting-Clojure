@@ -76,9 +76,7 @@
   "Return a set of unique numElem random numbers in the range [0-maxVal] "
   [maxVal numElem]
 
-  (let [a-set (set (take numElem (repeatedly #(rand-int maxVal))))]
-    (concat a-set (set/difference (set (take numElem (range))) a-set)))
-)
+  (take numElem (distinct (repeatedly #(rand-int maxVal)))))
 
 
 (defn create-store-locations
@@ -91,13 +89,11 @@
 
   (def randIdx (unique-rand-int-set (count nodeMaps) numPossMag))
 
-  (loop [iter 1]
-		(let [n (nth randIdx iter)]
-      (def nodeMaps (update-in nodeMaps [n :capacity] + storeCapacity))
-      (def stores (conj stores (get nodeMaps n))))
 
-    (if (< iter numPossMag)
-      (recur (inc iter))))
+  (doseq [idx randIdx]
+    (def nodeMaps (update-in nodeMaps [idx :capacity] + storeCapacity))
+    (def stores (conj stores (get nodeMaps idx))))
+
 )
 
 

@@ -275,10 +275,14 @@ ret)
 
 (defn find-worst-client
  [set,store]
- (subvec (into [] (map second 
-                       (into [] (sort-by first > 
-                                         (into [] (map #(vector (computeCost store %) %) set)))))) 
-         0 5))
+ (def array (shuffle (take 10 (into [] (map second 
+                                     (into [] (sort-by first > 
+                                                       (into [] (map #(vector (computeCost store %) %) set))))))))) 
+ (def ret [])
+ (doseq [idx (unique-rand-int-set (count array) 5)]
+   (def ret (conj ret (get array idx))))
+
+ ret)
 
 (defn perfect-match-swap
   [ll, sh]

@@ -283,62 +283,64 @@
   (def optimumCost Double/MAX_VALUE)
   (def improved false)
   (def ngrasp 0)
-  (def nswap 0)
   (def nstore 0)
   ;;maxswap maxgrasp maxnstore are the maximum iterations
   ;;for each fallimentar procedure
   (instance-init)
   (println "Massima capacità: "storeCapacity " Massima domanda: "maxDemand)
-  (println "Numero magazzini tot: "numPossMag)
+  (println "Numero magazzini tot: "numPossMag "\n\n")
 
   (loop [idx0 1]
    
-    (if (= nswap maxswap)
+    (if (= ngrasp maxgrasp)
       (do
         (println "\t\t*****STORE SWAP******")
         (def cover (swap-store optimum))
         (println (map calcDemand cover))  
         ))
 
-
-    (if (and (= ngrasp maxgrasp) (< nswap maxswap))
-      (do
-        (println "SWAP ")
-        (loop []
-          (def cover (k-swap optimum))
-           (if (some #(> % storeCapacity) (map calcDemand cover))
-            (recur)))
-        (println (map calcDemand cover))))
-
     (if (< ngrasp maxgrasp)
       (do
-        (println "CONSTR GREEDY SOL ")
+        (println "\t\t******GRASP********* ")
         (def cover (constrGreedySol))))
 
-    (println "Nstore " nstore "Nswap " nswap "Ngrasp " ngrasp)
+    (println "Nstore " nstore "Ngrasp " ngrasp)
     (def candidate (local-search cover))
     (def candidateCost (evaluate candidate))
-    (print candidateCost " ?< " optimumCost)
+   
+    (println candidateCost " ?< " optimumCost)
     (if (< candidateCost optimumCost)
       (do
         (def improved true)
         (def optimum candidate)
-        (def optimumCost candidateCost))
+        (def optimumCost candidateCost)
+        ;;ILS
+        (println "Starting ILS...")
+        (loop [idx1 1]
+          ;;k-swap ammissibile
+          (loop []
+            (def destr (k-swap candidate))
+            (if (some #(> % storeCapacity) (map calcDemand destr))
+              (recur)))
+
+          (def destr (local-search destr))
+          (def destrCost (evaluate destr))
+          (println idx1 ": " destrCost "<? " candidateCost)
+          (if (< destrCost candidateCost) 
+            (do 
+              (def candidate destr)
+              (def candidateCost destrCost)))
+
+          (if (< idx1 10)
+            (recur (inc idx1)))))
       (def improved false))
     (println  " : " improved)
 
-    (if (= nswap maxswap)
+    (if (= ngrasp maxgrasp)
       (if improved 
-        (do
-          (def nstore 0)
-          (def nswap 0))
+        (def nstore 0)
         (def nstore (inc nstore))))
-
-    (if (and (= ngrasp maxgrasp) (< nswap maxswap))
-      (if improved 
-        (def nswap 0)
-        (def nswap (inc nswap))))
-    
+  
       (if (< ngrasp maxgrasp)
         (if improved 
           (def ngrasp 0)
@@ -348,7 +350,7 @@
       (println "\n\n")
 
     (if (< nstore maxnstore)
-      (recur (inc nstore))))
+      (recur (inc idx0))))
 
 )
 
