@@ -330,6 +330,9 @@
             (do 
               (def candidate destr)
               (def candidateCost destrCost)))
+          (if (< candidateCost optimumCost)
+            (do (def optimum candidate)
+                (def optimumCost candidateCost)))
 
           (if (< idx1 10)
             (recur (inc idx1)))))
