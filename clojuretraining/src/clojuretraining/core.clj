@@ -269,12 +269,13 @@
           (> (count args) 1))
     ;;set to default values
     (do (def storeCapacity 600 )
-        (def maxDemand 20)) 
+        (def maxDemand 20)
+        (def maxgrasp 10)
+        (def maxIls 10)
+        (def maxnstore 1)) 
     ;;read values from input file
 	(read-param-file (str "./resources/"(first args))))
 
-  ;;read the grasp parameter file
-  (read-grasp-param "grasp-parameters.txt")
   ;;apro il file e lo leggo una riga alla volta, lo passo poi al parser
   ;; per l'inizializzazione della struttura dati che conterrà tutti i nodi
   (read-benchmark-file "lu980.txt") 
@@ -334,7 +335,7 @@
             (do (def optimum candidate)
                 (def optimumCost candidateCost)))
 
-          (if (< idx1 10)
+          (if (< idx1 maxIls)
             (recur (inc idx1)))))
       (def improved false))
     (println  " : " improved)
