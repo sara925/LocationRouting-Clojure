@@ -301,6 +301,54 @@ ret)
   match)
 
 
+(defn stable-marriage
+  [ll,sh]
+  (def nll ll)
+  (def sc (set sh))
+  
+  (def distArray [])
+  (doseq [cl nll]
+    (def distArray (conj distArray {:cl cl :dist (find-best-stores (first cl) sh)})))
+
+
+  (def match [])
+  (def  clientiTot (into #{} nll))
+  (def  clientiMatch (into #{} (remove nil? (map (fn [[f _]] f) match))))
+  (def  clientiNA (set/difference clientiTot clientiMatch))
+  (loop []
+    (let [magazziniMatch (into #{} (remove nil? (map (fn [[_ s]] s) match)))]
+      
+      (def  magazziniNA (set/difference sc magazziniMatch))
+
+      (def man (first clientiNA))
+      (def listaPreferiti (:dist (first (filter #(= (:cl %) man) distArray ))))
+      (def preferito (first listaPreferiti))
+      (if (contains? magazziniNA preferito)
+        (def match (conj match [man [(first man) preferito]]))
+        (do
+          (def sposi (filter #(= (second (second %)) preferito) match))
+          (def corno (first (first sposi)))
+          (if (> (computeCost corno preferito) (computeCost (first man) preferito))
+            (do
+              (def match (into [] (remove #(= sposi %) match)));rimuovo la vecchia coppia
+              (def match (conj match [man [(first man) preferito]]));aggiungo la nuova coppia
+              )
+            (do
+              (def idxMan (.indexOf distArray (first(filter #(= (:cl %) man) distArray))))
+              ;rimuovo preferito dai candidati per la propo
+              (def distArray
+                (assoc-in distArray [idxMan :dist] (into [] (remove #(= % preferito) 
+                                                                    (:dist (get distArray idxMan))))))
+              ))
+          )))
+    (def  clientiMatch (into #{} (remove nil? (map (fn [[f _]] f) match))))
+    (def  clientiNA (set/difference clientiTot clientiMatch))
+    (if (not (empty? clientiNA))
+      (recur)))
+
+  match)
+
+
 (defn sum-gain
   [in]
  (def gain)
@@ -317,7 +365,7 @@ ret)
   (def b 0)
 
  (doseq [idx (range 5)]
-   (def r (perfect-match-swap (into [] (map (fn [x] [(get (:leafs x) idx) (:store x)]) wa)) storeHouse))
+   (def r (stable-marriage (into [] (map (fn [x] [(get (:leafs x) idx) (:store x)]) wa)) storeHouse))
    (if (> (sum-gain r) b)
      (do
        (def b (sum-gain r))

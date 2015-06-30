@@ -83,3 +83,25 @@
 
 ;(println  (map first (filter (fn [[_ y]] (= 1 y)) (reduce #(assoc %1 %2 (inc (%1 %2 0))) {} (mapcat (fn [[a b _]] [a b]) (second (reduce add-link [city-uf '()] links)))))))
                                         ;le foglie sono i nodi che occorrono solo una volta nel secondo termine risultante dalla reduce
+
+(for i=1, i< #nodi, i++) {
+   j=i+1
+   k=j+1
+
+ (loop)
+   (valuta i->j->k->i)
+   (valuta j->k->i->j)
+   (if k<n
+     k++
+    else 
+      j++)
+   (if j<n-1
+     k=j+1
+    else
+     i++
+     j++
+     k=j+1)
+
+   (if i<n-2 recur)
+
+}
