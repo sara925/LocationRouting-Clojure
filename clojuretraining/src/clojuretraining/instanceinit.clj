@@ -49,6 +49,12 @@
 					  
 					 	(if (= (str/trim(first lineSplit)) (str/trim "NSTORE"))
 					  (def maxnstore (read-string (second lineSplit))))
+
+                                        (if (= (str/trim(first lineSplit)) (str/trim "BUILD COST"))
+					  (def buildCost (read-string (second lineSplit))))
+					  
+					 	(if (= (str/trim(first lineSplit)) (str/trim "BUILD RANGE"))
+					  (def buildRange (read-string (second lineSplit))))
 				))
 		))
 )
@@ -107,5 +113,5 @@
 	(create-store-locations )
 	(create-customers-array)
 
-	(def stores (vec (map #(assoc % :build (+ 10000 (rand 10000))) stores))) 
+	(def stores (vec (map #(assoc % :build (+ buildCost (rand buildRange))) stores))) 
 )

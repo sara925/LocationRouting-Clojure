@@ -25,6 +25,11 @@
 
 ;;---greedy function and GRASP data structures--
 (def subSetArray []);contains a random number of randomly choosen subsets of clients, every subsets represents the binding between a storehouse and its customers
+;;store cost parameter
+(def buildCost)
+(def buildRange)
+
+
 
 (def borders {:xmin 0 :xmax 0 :ymin 0 :ymax 0})
 (def slotsProbability (reductions + [50 30 15 5]))  ;probabilità delle varie fasce
@@ -272,7 +277,9 @@
         (def maxDemand 20)
         (def maxgrasp 10)
         (def maxIls 10)
-        (def maxnstore 1)) 
+        (def maxnstore 1)
+        (def buildCost 10000)
+        (def buildRange 10000)) 
     ;;read values from input file
 	(read-param-file (str "./resources/"(first args))))
 

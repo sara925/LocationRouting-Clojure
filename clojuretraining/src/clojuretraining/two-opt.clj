@@ -1,6 +1,9 @@
 (in-ns 'clojuretraining.core)
 
-
+(defn find-best-stores
+  [cl,coll]
+  ;trovo i magazzini a distanza minore da cl, ritorno costo e nodo magazzino in un array 
+  (into [] (map second (sort-by first (into [] (map #(vector (computeCost cl %) %)  coll))))))
 
 (defn tour-cost
   [tour]
