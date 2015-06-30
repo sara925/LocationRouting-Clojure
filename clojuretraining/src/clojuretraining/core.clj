@@ -304,6 +304,7 @@
       (do
         (println "\t\t*****STORE SWAP******")
         (def cover (swap-store optimum))
+        (def maxIls 20)
         (println (map calcDemand cover))  
         ))
 
@@ -321,8 +322,11 @@
       (do
         (def improved true)
         (def optimum candidate)
-        (def optimumCost candidateCost)
-        ;;ILS
+        (def optimumCost candidateCost))
+       (def improved false)
+    )
+    (if (or improved (< (- candidateCost optimumCost) buildCost))  
+      (do
         (println "Starting ILS...")
         (loop [idx1 1]
           ;;k-swap ammissibile
@@ -340,11 +344,12 @@
               (def candidateCost destrCost)))
           (if (< candidateCost optimumCost)
             (do (def optimum candidate)
-                (def optimumCost candidateCost)))
+                (def optimumCost candidateCost)
+                (def improved true)))
 
-          (if (< idx1 maxIls)
-            (recur (inc idx1)))))
-      (def improved false))
+          (if  (< idx1 maxIls )
+            (recur (inc idx1))))))
+   
     (println  " : " improved)
 
     (if (= ngrasp maxgrasp)
