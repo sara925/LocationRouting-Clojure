@@ -26,6 +26,11 @@
 
 ;;---greedy function and GRASP data structures--
 (def subSetArray []);contains a random number of randomly choosen subsets of clients, every subsets represents the binding between a storehouse and its customers
+;;store cost parameter
+(def buildCost)
+(def buildRange)
+
+
 
 (def borders {:xmin 0 :xmax 0 :ymin 0 :ymax 0})
 (def slotsProbability (reductions + [50 30 15 5]))  ;probabilità delle varie fasce
@@ -61,6 +66,38 @@
 )
 
 
+<<<<<<< HEAD
+=======
+(defn initSubSetArray
+ []
+  (def subSetArray [])
+  (find-border-customers)
+  (doseq [iter (range (count stores))] 
+    
+    (def slots (assignProbability (get stores iter)))
+    (doseq [x (range 3)]
+      ;;costruzione del subset come insieme di mappe clienti e mappa store
+      ;;(def subSet #{ {:store (get stores iter)} {:x 1 :y 2} }) ;TODO aggiungi il set
+      (def subSet #{})
+      (def subSet (createSubSet slots subSet))
+      ;;modifica del subset nella struttura
+      ;{: store nodo_magazzino :set insieme dei nodi del set compreso nodo maggazino}
+      (def subSet {:store (get stores iter) :set subSet})
+      (def subSetArray (conj subSetArray subSet)))    
+  )
+  (def subSetArray (into [] (map #(assoc  %1 :id %2)  subSetArray (range (count subSetArray)))))
+  ;;la struttura è quella voluta
+  ;;definisco una function per utilizzare solo la mappa set(clienti+store nelle varie funzioni)
+  (def notAssigned (set/difference (set clients) (set/intersection  (set clients) (reduce set/union  (getAllSet subSetArray) ))))
+  (print "  Clienti non assegnati ad alcun set " (count notAssigned))
+  (if (not (empty? notAssigned))
+    (do 
+      (doseq [cl notAssigned] (assign-to-set cl))
+      (print " -> 0"))  
+  )
+  (println "")
+)
+>>>>>>> greedyTrial1
 
 (defn calcDemand
   [set]
@@ -91,6 +128,7 @@
 
 (defn remove-duplicates
   [Jin]
+
   (def J Jin)
   (doseq [cl clients]
     (let [presence (into [] (remove #(nil? %) (map (fn [x] (if (contains? (:set x) cl) x)) J)))]
@@ -102,6 +140,83 @@
           ))))
   J)
 
+<<<<<<< HEAD
+=======
+
+(defn fixCapacity
+  [Jin]
+  (def J Jin)
+  (doseq [i (range (count J))]
+    (if (> (calcDemand (get J i)) storeCapacity)
+      (do
+        (def foglie (MST-leaf (get J i)) )
+        (loop [toRemove (- (calcDemand (get J i)) storeCapacity)]
+          (def foglia (nth foglie (rand-int (count foglie))))
+          
+          (def s 
+            (find-best-stores 
+               foglia 
+               (getAllStore (into [] (remove nil? (into [] 
+                                   (map (fn [x] (if (< (+ (calcDemand x) (:capacity foglia)) storeCapacity) x)) J )))))))
+    
+          (def idx (.indexOf J (first (filter #(= (:store %) (first s)) J))))
+          ;;rimozione della foglia
+          (def J (assoc-in J [i :set] (set/difference (:set (get J i)) #{foglia})))
+          ;;aggiunta in quello 
+          (def J (assoc-in J [idx :set] (set/union (:set (get J idx)) #{foglia})))
+          (if (> toRemove 0)
+            (recur (- toRemove (:capacity foglia)))))
+      )))
+  J)
+
+(defn constrGreedySol
+  []
+  (println "Costruzione dei un cover ammissibile")
+  (initSubSetArray)
+  (def subSetTmp subSetArray)
+
+  (def J [])
+  (loop [iter 0]
+    ;;calcolo pesi
+    (doseq [idx (range (count subSetTmp))]
+      (def subSetTmp (assoc-in subSetTmp [idx :cost] (compSetCost (get subSetTmp idx)))))
+
+    (def subSetTmp (sort-by :cost subSetTmp))
+    (def beta (* 1.3 (:cost (first subSetTmp))))
+    (let [P (filter #(< (:cost %) beta) subSetTmp)
+          pi (nth P (rand-int (count P)))
+          ret (checkOcc pi J)]
+      (if (false? ret)
+        (def J (conj J (get subSetArray (.indexOf subSetArray (first (filter #(= (:id pi) (:id %)) subSetArray))))))
+        (def J (assoc J (.indexOf J (first (filter #(= (:store pi) (:store %)) J))) ret)))
+      
+      (def subSetTmp (into [] (map (fn [x] (assoc x :set (set/difference (:set x) (:set pi)))) subSetTmp)))
+      (def subSetTmp (into [] (remove #(empty? (:set %)) subSetTmp)))
+      
+      ;(println "Rimasti "(count (reduce set/union (getAllSet subSetTmp))))
+      ) 
+    
+    (if (not (empty? (reduce set/union (getAllSet subSetTmp))))
+      (recur (inc iter)))
+    )
+  ()
+  ;"rifinisco" J
+  (def J (into [] (remove #(empty? (:set %))  J)))
+  (println "  Controllo e rimozione clienti duplicati..")
+  (def J (remove-duplicates J))
+  (def J (into [] (remove #(empty? (:set %))  J)))
+ 
+  (println "  Controllo e ripristino vincolo capacità del magazzino..")
+  (loop [] 
+    (def J (fixCapacity J))
+    (if (some #(> % storeCapacity) (map calcDemand J))
+      (recur)))
+
+  ;(println (map calcDemand J))
+  (println "  Numero di magazzini del cover " (count J) "/"numPossMag)
+  J)
+
+>>>>>>> greedyTrial1
 (defn evaluate
   [in]
    (+ (reduce + (map #(tour-cost (:tour %)) in)) 
@@ -117,7 +232,12 @@
           (> (count args) 1))
     ;;set to default values
     (do (def storeCapacity 600 )
-        (def maxDemand 20)) 
+        (def maxDemand 20)
+        (def maxgrasp 10)
+        (def maxIls 10)
+        (def maxnstore 1)
+        (def buildCost 10000)
+        (def buildRange 10000)) 
     ;;read values from input file
 	(read-param-file (str "./resources/"(first args))))
 
@@ -129,57 +249,82 @@
   (def optimumCost Double/MAX_VALUE)
   (def improved false)
   (def ngrasp 0)
-  (def nswap 0)
   (def nstore 0)
-
+  ;;maxswap maxgrasp maxnstore are the maximum iterations
+  ;;for each fallimentar procedure
+  (println "Lettura del file di benchmark e inizializzazione istanza...")
   (instance-init)
-  (println "Massima capacità: "storeCapacity " Massima domanda: "maxDemand)
-  (println "Numero magazzini tot: "numPossMag)
+  (println "Capacità magazzini: "storeCapacity "\nMassima domanda per cliente: "maxDemand)
+  (println "Numero magazzini tot: "numPossMag "\n\n")
 
   (loop [idx0 1]
    
-    (if (= nswap 1)
+    (if (= ngrasp maxgrasp)
       (do
-        (println "\t\t*****STORE SWAP******")
-        (def cover (swap-store optimum))))
+        (println "\t**************** STORE SWAP **************** ")
+        (def cover (swap-store optimum))
+        (def maxIls 20)
+        (println (map calcDemand cover))  
+        ))
 
-
-    (if (and (= ngrasp 10) (< nswap 1))
+    (if (< ngrasp maxgrasp)
       (do
-        (println "SWAP ")
-        (def cover (k-swap optimum))
-        (println (map calcDemand cover))))
-
-    (if (< ngrasp 10)
-      (do
-        (println "CONSTR GREEDY SOL ")
+        (println "\t****************   GRASP   ****************")
         (def cover (constrGreedySol))))
 
-    (println "Nstore " nstore "Nswap " nswap "Ngrasp " ngrasp)
+    (println "\nStore-Swap failures "nstore"/"maxnstore "GRASP failures "ngrasp"/"maxgrasp)
     (def candidate (local-search cover))
     (def candidateCost (evaluate candidate))
-    (print candidateCost " ?< " optimumCost)
+   
+    (println "    COSTO X'=LS(X)         COSTO X* ")
+    (if (< optimumCost Double/MAX_VALUE) 
+      (print "   "(format "%8.4f" candidateCost) "   ?<   " (format "%8.4f" optimumCost))
+      (print "   "(format "%8.4f" candidateCost) "   ?<   " optimumCost))
     (if (< candidateCost optimumCost)
       (do
         (def improved true)
         (def optimum candidate)
         (def optimumCost candidateCost))
-      (def improved false))
-    (println  " : " improved)
+       (def improved false)
+    )
+    (println " "improved)
+    (if (or improved (< (- candidateCost optimumCost) buildCost))  
+      (do
+        (println "\t\tStarting ILS...")
+        (loop [idx1 1]
+          ;;k-swap ammissibile
+          (loop []
+            (def destr (k-swap candidate))
+            (if (some #(> % storeCapacity) (map calcDemand destr))
+              (recur)))
 
-    (if (= nswap 1)
+          (def destr (local-search destr))
+          (def destrCost (evaluate destr))
+          (print " "idx1":"(format "%8.4f" destrCost) "   ?<   " (format "%8.4f" candidateCost))
+         ; (println idx1 ": " destrCost "<? " candidateCost)
+          (if (< destrCost candidateCost) 
+            (do 
+              (println "  true")
+              (def candidate destr)
+              (def candidateCost destrCost))
+              (println "  false"))
+          (if (< candidateCost optimumCost)
+            (do 
+              (def optimum candidate)
+              (def optimumCost candidateCost)
+              (def improved true)))
+
+          (if  (< idx1 maxIls )
+            (recur (inc idx1))))))
+   
+    (println  "Ottimo candidato costo: " optimumCost)
+
+    (if (= ngrasp maxgrasp)
       (if improved 
-        (do
-          (def nstore 0)
-          (def nswap 0))
+        (def nstore 0)
         (def nstore (inc nstore))))
-
-    (if (and (= ngrasp 10) (< nswap 1))
-      (if improved 
-        (def nswap 0)
-        (def nswap (inc nswap))))
-    
-      (if (< ngrasp 10)
+  
+      (if (< ngrasp maxgrasp)
         (if improved 
           (def ngrasp 0)
           (def ngrasp (inc ngrasp))))
@@ -187,8 +332,8 @@
 
       (println "\n\n")
 
-    (if (< nstore 1)
-      (recur (inc nstore))))
+    (if (< nstore maxnstore)
+      (recur (inc idx0))))
 
 )
 

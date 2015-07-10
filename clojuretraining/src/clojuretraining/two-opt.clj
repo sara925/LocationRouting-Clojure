@@ -1,6 +1,9 @@
 (in-ns 'clojuretraining.core)
 
-
+(defn find-best-stores
+  [cl,coll]
+  ;trovo i magazzini a distanza minore da cl, ritorno costo e nodo magazzino in un array 
+  (into [] (map second (sort-by first (into [] (map #(vector (computeCost cl %) %)  coll))))))
 
 (defn tour-cost
   [tour]
@@ -275,10 +278,14 @@ ret)
 
 (defn find-worst-client
  [set,store]
- (subvec (into [] (map second 
-                       (into [] (sort-by first > 
-                                         (into [] (map #(vector (computeCost store %) %) set)))))) 
-         0 5))
+ (def array (shuffle (take 10 (into [] (map second 
+                                     (into [] (sort-by first > 
+                                                       (into [] (map #(vector (computeCost store %) %) set))))))))) 
+ (def ret [])
+ (doseq [idx (unique-rand-int-set (count array) 5)]
+   (def ret (conj ret (get array idx))))
+
+ ret)
 
 (defn perfect-match-swap
   [ll, sh]
@@ -294,6 +301,54 @@ ret)
       
     (if (< idx (- (count nll) 1))
       (recur (inc idx))))
+  match)
+
+
+(defn stable-marriage
+  [ll,sh]
+  (def nll ll)
+  (def sc (set sh))
+  
+  (def distArray [])
+  (doseq [cl nll]
+    (def distArray (conj distArray {:cl cl :dist (find-best-stores (first cl) sh)})))
+
+
+  (def match [])
+  (def  clientiTot (into #{} nll))
+  (def  clientiMatch (into #{} (remove nil? (map (fn [[f _]] f) match))))
+  (def  clientiNA (set/difference clientiTot clientiMatch))
+  (loop []
+    (let [magazziniMatch (into #{} (remove nil? (map (fn [[_ s]] s) match)))]
+      
+      (def  magazziniNA (set/difference sc magazziniMatch))
+
+      (def man (first clientiNA))
+      (def listaPreferiti (:dist (first (filter #(= (:cl %) man) distArray ))))
+      (def preferito (first listaPreferiti))
+      (if (contains? magazziniNA preferito)
+        (def match (conj match [man [(first man) preferito]]))
+        (do
+          (def sposi (filter #(= (second (second %)) preferito) match))
+          (def corno (first (first sposi)))
+          (if (> (computeCost corno preferito) (computeCost (first man) preferito))
+            (do
+              (def match (into [] (remove #(= sposi %) match)));rimuovo la vecchia coppia
+              (def match (conj match [man [(first man) preferito]]));aggiungo la nuova coppia
+              )
+            (do
+              (def idxMan (.indexOf distArray (first(filter #(= (:cl %) man) distArray))))
+              ;rimuovo preferito dai candidati per la propo
+              (def distArray
+                (assoc-in distArray [idxMan :dist] (into [] (remove #(= % preferito) 
+                                                                    (:dist (get distArray idxMan))))))
+              ))
+          )))
+    (def  clientiMatch (into #{} (remove nil? (map (fn [[f _]] f) match))))
+    (def  clientiNA (set/difference clientiTot clientiMatch))
+    (if (not (empty? clientiNA))
+      (recur)))
+
   match)
 
 
@@ -313,7 +368,7 @@ ret)
   (def b 0)
 
  (doseq [idx (range 5)]
-   (def r (perfect-match-swap (into [] (map (fn [x] [(get (:leafs x) idx) (:store x)]) wa)) storeHouse))
+   (def r (stable-marriage (into [] (map (fn [x] [(get (:leafs x) idx) (:store x)]) wa)) storeHouse))
    (if (> (sum-gain r) b)
      (do
        (def b (sum-gain r))
@@ -345,7 +400,7 @@ ret)
       (def cswap (assoc-in cswap [idxa :set] (set/union (:set (get cswap idxa)) #{(first (second scambio))})))
     ))
   
-  (fixCapacity cswap))
+   cswap)
 
 (defn find-best-replace
   [sin, coll]

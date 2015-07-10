@@ -16,11 +16,11 @@
        ))
    ))
  (def tmp #{})
- (println "Nodi nodeMaps prima della rimozione " (count nodeMaps))
+ (println "Nodi totali: " (count nodeMaps))
  (doseq [a nodeMaps b nodeMaps] (if  (and (= (:x a) (:x b)) (= (:y a) (:y b)) (not= (:id a) (:id b))) (def tmp (set/union  tmp #{a b}))))
  ;;only non-duplicate node
  (def nodeMaps (into [] (set/difference (set nodeMaps) tmp)))
-  (println "Nodi nodeMaps non duplicati " (count nodeMaps))
+  (println "Nodi non duplicati: " (count nodeMaps))
 )
 
 
@@ -40,10 +40,24 @@
 
 					(if (= (str/trim(first lineSplit)) (str/trim "MAXIMUM DEMAND"))
 					  (def maxDemand (read-string (second lineSplit))))
+
+                                        	(if (= (str/trim(first lineSplit)) (str/trim "NGRASP"))
+					  (def maxgrasp (read-string (second lineSplit))))
+
+					(if (= (str/trim(first lineSplit)) (str/trim "NILS"))
+					  (def maxIls (read-string (second lineSplit))))
+					  
+					 	(if (= (str/trim(first lineSplit)) (str/trim "NSTORE"))
+					  (def maxnstore (read-string (second lineSplit))))
+
+                                        (if (= (str/trim(first lineSplit)) (str/trim "BUILD COST"))
+					  (def buildCost (read-string (second lineSplit))))
+					  
+					 	(if (= (str/trim(first lineSplit)) (str/trim "BUILD RANGE"))
+					  (def buildRange (read-string (second lineSplit))))
 				))
 		))
 )
-
 
 
 ;;inizializza i magazzini
@@ -51,9 +65,7 @@
   "Return a set of unique numElem random numbers in the range [0-maxVal] "
   [maxVal numElem]
 
-  (let [a-set (set (take numElem (repeatedly #(rand-int maxVal))))]
-    (concat a-set (set/difference (set (take numElem (range))) a-set)))
-)
+  (take numElem (distinct (repeatedly #(rand-int maxVal)))))
 
 
 (defn create-store-locations
@@ -66,13 +78,11 @@
 
   (def randIdx (unique-rand-int-set (count nodeMaps) numPossMag))
 
-  (loop [iter 1]
-		(let [n (nth randIdx iter)]
-      (def nodeMaps (update-in nodeMaps [n :capacity] + storeCapacity))
-      (def stores (conj stores (get nodeMaps n))))
 
-    (if (< iter numPossMag)
-      (recur (inc iter))))
+  (doseq [idx randIdx]
+    (def nodeMaps (update-in nodeMaps [idx :capacity] + storeCapacity))
+    (def stores (conj stores (get nodeMaps idx))))
+
 )
 
 
@@ -103,5 +113,5 @@
 	(create-store-locations )
 	(create-customers-array)
 
-	(def stores (vec (map #(assoc % :build (+ 10000 (rand 10000))) stores))) 
+	(def stores (vec (map #(assoc % :build (+ buildCost (rand buildRange))) stores))) 
 )
